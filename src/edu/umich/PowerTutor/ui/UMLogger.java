@@ -19,12 +19,6 @@ Please send inquiries to powertutor@umich.edu
 
 package edu.umich.PowerTutor.ui;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.zip.InflaterInputStream;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -34,7 +28,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.Menu;
@@ -48,6 +41,7 @@ import edu.umich.PowerTutor.R;
 import edu.umich.PowerTutor.phone.PhoneSelector;
 import edu.umich.PowerTutor.service.ICounterService;
 import edu.umich.PowerTutor.service.UMLoggerService;
+import edu.umich.PowerTutor.util.LogWriter;
 
 /** The main view activity for PowerTutor */
 public class UMLogger extends Activity {
@@ -153,37 +147,10 @@ public class UMLogger extends Activity {
       startActivity(new Intent(this, EditPreferences.class));
       return true;
     case MENU_SAVE_LOG:
-      writeLogAsync();
+      LogWriter.writeLogAsync(this);
       return true;
     }
     return super.onOptionsItemSelected(item);
-  }
-
-  private void writeLogAsync() {
-    new Thread() {
-      public void start() {
-        File writeFile = new File(Environment.getExternalStorageDirectory(), "PowerTrace" + System.currentTimeMillis()
-            + ".log");
-        try {
-          InflaterInputStream logIn = new InflaterInputStream(openFileInput("PowerTrace.log"));
-          BufferedOutputStream logOut = new BufferedOutputStream(new FileOutputStream(writeFile));
-
-          byte[] buffer = new byte[20480];
-          for (int ln = logIn.read(buffer); ln != -1; ln = logIn.read(buffer)) {
-            logOut.write(buffer, 0, ln);
-          }
-          logIn.close();
-          logOut.close();
-          Toast.makeText(UMLogger.this, "Wrote log to " + writeFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-          return;
-        } catch (java.io.EOFException e) {
-          Toast.makeText(UMLogger.this, "Wrote log to " + writeFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-          return;
-        } catch (IOException e) {
-        }
-        Toast.makeText(UMLogger.this, "Failed to write log to sdcard", Toast.LENGTH_SHORT).show();
-      }
-    }.start();
   }
 
   /** This function includes all the dialog constructor */
@@ -252,12 +219,6 @@ public class UMLogger extends Activity {
     return null;
   }
 
-  private boolean isAutoSaveLog() {
-    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(UMLogger.this);
-    boolean autoSaveLog = prefs.getBoolean("autoSaveLog", false);
-    return autoSaveLog;
-  }
-
   private Button.OnClickListener appViewerButtonListener = new Button.OnClickListener() {
     public void onClick(View v) {
       Intent intent = new Intent(v.getContext(), PowerTop.class);
@@ -277,9 +238,7 @@ public class UMLogger extends Activity {
       serviceStartButton.setEnabled(false);
       if (counterService != null) {
         stopService(serviceIntent);
-        if (isAutoSaveLog()) {
-          writeLogAsync();
-        }
+
       } else {
         if (conn == null) {
           Toast.makeText(UMLogger.this, "Profiler failed to start", Toast.LENGTH_SHORT).show();

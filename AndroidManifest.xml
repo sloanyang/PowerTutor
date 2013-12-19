@@ -73,7 +73,12 @@
         <category android:name="android.intent.category.HOME" />
       </intent-filter>
     </receiver>
-    <service android:name=".service.UMLoggerService"></service>
+    <service android:name=".service.UMLoggerService" android:exported="true">
+        <intent-filter >
+            <action android:name="edu.umich.PowerTutor.service.UMLoggerService"></action>
+            
+        </intent-filter>
+    </service>
     <receiver android:name=".widget.PowerWidget" >
       <intent-filter>
           <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

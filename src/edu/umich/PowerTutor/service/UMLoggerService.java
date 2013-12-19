@@ -33,8 +33,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
@@ -43,6 +45,7 @@ import android.widget.Toast;
 import edu.umich.PowerTutor.R;
 import edu.umich.PowerTutor.ui.UMLogger;
 import edu.umich.PowerTutor.util.BatteryStats;
+import edu.umich.PowerTutor.util.LogWriter;
 import edu.umich.PowerTutor.util.SystemInfo;
 
 public class UMLoggerService extends Service {
@@ -90,6 +93,7 @@ public class UMLoggerService extends Service {
   public void onStart(Intent intent, int startId) {
     super.onStart(intent, startId);
     // android.os.Debug.startMethodTracing("pt.trace");
+    Log.i(TAG, "onStart called");
 
     if (intent.getBooleanExtra("stop", false)) {
       stopSelf();
@@ -133,9 +137,18 @@ public class UMLoggerService extends Service {
 
       notificationManager.cancel(NOTIFICATION_ID);
     }
+    if (isAutoSaveLog()) {
+      LogWriter.writeLogSync(this);
+    }
 
     super.onDestroy();
   };
+
+  private boolean isAutoSaveLog() {
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+    boolean autoSaveLog = prefs.getBoolean("autoSaveLog", false);
+    return autoSaveLog;
+  }
 
   /** This function is to construct the real-time updating notification */
   public void showNotification() {
