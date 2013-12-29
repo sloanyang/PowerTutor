@@ -46,9 +46,12 @@ import edu.umich.PowerTutor.R;
 import edu.umich.PowerTutor.ui.UMLogger;
 import edu.umich.PowerTutor.util.BatteryStats;
 import edu.umich.PowerTutor.util.LogWriter;
+import edu.umich.PowerTutor.util.LogWriter.FileType;
 import edu.umich.PowerTutor.util.SystemInfo;
 
 public class UMLoggerService extends Service {
+  public static final String EXTRA_TEST_DESCRIPTION = "testDescription";
+
   private static final String TAG = "UMLoggerService";
 
   private static final int NOTIFICATION_ID = 1;
@@ -61,6 +64,8 @@ public class UMLoggerService extends Service {
 
   private NotificationManager notificationManager;
   private TelephonyManager phoneManager;
+
+  private String testDescription = "";
 
   @Override
   public IBinder onBind(Intent intent) {
@@ -101,6 +106,9 @@ public class UMLoggerService extends Service {
     } else if (estimatorThread != null) {
       return;
     }
+    if (intent.hasExtra(EXTRA_TEST_DESCRIPTION)) {
+      testDescription = intent.getStringExtra(EXTRA_TEST_DESCRIPTION);
+    }
     showNotification();
     estimatorThread = new Thread(powerEstimator);
     estimatorThread.start();
@@ -138,7 +146,8 @@ public class UMLoggerService extends Service {
       notificationManager.cancel(NOTIFICATION_ID);
     }
     if (isAutoSaveLog()) {
-      LogWriter.writeLogSync(this);
+      LogWriter.writeLogSync(this, testDescription, FileType.LOG);
+      LogWriter.writeLogSync(this, testDescription, FileType.CSV);
     }
 
     super.onDestroy();

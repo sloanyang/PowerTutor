@@ -11,19 +11,21 @@ import edu.umich.PowerTutor.util.BatteryStats;
 import edu.umich.PowerTutor.util.NotificationService;
 import edu.umich.PowerTutor.util.SystemInfo;
 
-public class TextLogWriter {
+public class TextLogWriter implements LogWriter {
   private OutputStreamWriter logStream;
 
   public TextLogWriter(OutputStreamWriter logStream) {
     this.logStream = logStream;
   }
 
+  @Override
   public void writeIterationHeader(long iter, int totalPower) throws IOException {
     logStream.write("begin " + iter + "\n");
     logStream.write("total-power " + (long) Math.round(totalPower) + '\n');
   }
 
-  public void writeSingleDataPoint(String name, int uid, PowerData powerData) throws IOException {
+  @Override
+  public void writeSingleDataPoint(long iteration, String name, int uid, PowerData powerData) throws IOException {
     long roundedCachePower = (long) Math.round(powerData.getCachedPower());
     if (uid == SystemInfo.AID_ALL) {
       logStream.write(name + " " + roundedCachePower + "\n");
@@ -33,10 +35,12 @@ public class TextLogWriter {
     }
   }
 
+  @Override
   public void writeMemInfo(long[] memInfo) throws IOException {
     logStream.write("meminfo " + memInfo[0] + " " + memInfo[1] + " " + memInfo[2] + " " + memInfo[3] + "\n");
   }
 
+  @Override
   public void writeFirstIteration(BatteryStats bst, PhoneConstants phoneConstants, Map<Integer, String> uidAppIds)
       throws IOException {
 
@@ -58,5 +62,10 @@ public class TextLogWriter {
         logStream.write("associate " + uid + " " + uidAppIds.get(uid) + "\n");
       }
     }
+  }
+
+  @Override
+  public void close() throws IOException {
+    logStream.close();
   }
 }

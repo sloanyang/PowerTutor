@@ -14,16 +14,20 @@ public class LogWriter {
   public static void writeLogAsync(final Context context) {
     new Thread() {
       public void start() {
-        writeLogSync(context);
+        writeLogSync(context, "", FileType.LOG);
+        writeLogSync(context, "", FileType.CSV);
       }
     }.start();
   }
 
-  public static void writeLogSync(final Context context) {
-    File writeFile = new File(Environment.getExternalStorageDirectory(), "PowerTrace" + System.currentTimeMillis()
-        + ".log");
+  public static void writeLogSync(final Context context, String testDescription, FileType fileType) {
+    String cleanTestDescription = testDescription.replaceAll("\\W+", "_");
+
+    File writeFile = new File(Environment.getExternalStorageDirectory(), "PowerTrace-" + cleanTestDescription + "-"
+        + System.currentTimeMillis() + "." + fileType.getExtension());
     try {
-      InflaterInputStream logIn = new InflaterInputStream(context.openFileInput("PowerTrace.log"));
+      InflaterInputStream logIn = new InflaterInputStream(
+          context.openFileInput("PowerTrace." + fileType.getExtension()));
       BufferedOutputStream logOut = new BufferedOutputStream(new FileOutputStream(writeFile));
 
       byte[] buffer = new byte[20480];
@@ -40,6 +44,21 @@ public class LogWriter {
     } catch (IOException e) {
     }
     Toast.makeText(context, "Failed to write log to sdcard", Toast.LENGTH_SHORT).show();
+  }
+
+  public enum FileType {
+    LOG("log"), CSV("csv");
+
+    String extension = null;
+
+    FileType(String extension) {
+      this.extension = extension;
+    }
+
+    public String getExtension() {
+      return extension;
+    }
+
   }
 
 }

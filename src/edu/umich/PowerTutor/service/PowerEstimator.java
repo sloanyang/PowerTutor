@@ -20,11 +20,14 @@ Please send inquiries to powertutor@umich.edu
 package edu.umich.PowerTutor.service;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -84,8 +87,9 @@ public class PowerEstimator implements Runnable {
   private Object fileWriteLock = new Object();
   private LogUploader logUploader;
   private OutputStreamWriter logStream;
-  private TextLogWriter textLogWriter;
-  private DeflaterOutputStream deflateStream;
+  private LogWriter textLogWriter;
+  private LogWriter csvLogWriter;
+  private Set<LogWriter> logWriter;
 
   private Object iterationLock = new Object();
   private long lastWrittenIteration;
@@ -111,23 +115,36 @@ public class PowerEstimator implements Runnable {
   private void openLog(boolean init) {
     /* Open up the log file if possible. */
     try {
-      String logFilename = context.getFileStreamPath("PowerTrace.log").getAbsolutePath();
-      if (init && prefs.getBoolean("sendPermission", true) && new File(logFilename).length() > 0) {
+      String textFilename = context.getFileStreamPath("PowerTrace.log").getAbsolutePath();
+      if (init && prefs.getBoolean("sendPermission", true) && new File(textFilename).length() > 0) {
         /*
          * There is data to send. Make sure that gets going in the sending
          * process before we write over any old logs.
          */
-        logUploader.upload(logFilename);
+        logUploader.upload(textFilename);
       }
-      Deflater deflater = new Deflater();
-      deflater.setDictionary(DEFLATE_DICTIONARY.getBytes());
-      deflateStream = new DeflaterOutputStream(new FileOutputStream(logFilename));
-      logStream = new OutputStreamWriter(deflateStream);
+      logStream = createDeflaterOutputStream(textFilename);
       textLogWriter = new TextLogWriter(logStream);
+
+      String csvFilename = context.getFileStreamPath("PowerTrace.csv").getAbsolutePath();
+      csvLogWriter = new CsvLogWriter(createDeflaterOutputStream(csvFilename));
+
+      logWriter = new HashSet<LogWriter>();
+      logWriter.add(textLogWriter);
+      logWriter.add(csvLogWriter);
+
     } catch (IOException e) {
       logStream = null;
       Log.e(TAG, "Failed to open log file.  No log will be kept.");
     }
+  }
+
+  public OutputStreamWriter createDeflaterOutputStream(String logFilename) throws FileNotFoundException {
+    Deflater deflater = new Deflater();
+    deflater.setDictionary(DEFLATE_DICTIONARY.getBytes());
+    DeflaterOutputStream deflateStream = new DeflaterOutputStream(new FileOutputStream(logFilename));
+    return new OutputStreamWriter(deflateStream);
+
   }
 
   /**
@@ -316,32 +333,34 @@ public class PowerEstimator implements Runnable {
       }
 
       synchronized (fileWriteLock) {
-        if (logStream != null)
-          try {
-            if (firstLogIteration) {
-              firstLogIteration = false;
-              textLogWriter.writeFirstIteration(bst, phoneConstants, uidAppIds);
-            }
-            textLogWriter.writeIterationHeader(iter, totalPower);
-            if (hasMem) {
-              textLogWriter.writeMemInfo(memInfo);
-            }
-            for (int i = 0; i < components; i++) {
-              IterationData data = dataTemp[i];
-              if (data != null) {
-                String name = powerComponents.get(i).getComponentName();
-                SparseArray<PowerData> uidData = data.getUidPowerData();
-                for (int j = 0; j < uidData.size(); j++) {
-                  int uid = uidData.keyAt(j);
-                  PowerData powerData = uidData.valueAt(j);
-                  textLogWriter.writeSingleDataPoint(name, uid, powerData);
+        for (LogWriter currentlogWriter : logWriter) {
+
+          if (logStream != null)
+            try {
+              if (firstLogIteration) {
+                firstLogIteration = false;
+                currentlogWriter.writeFirstIteration(bst, phoneConstants, uidAppIds);
+              }
+              currentlogWriter.writeIterationHeader(iter, totalPower);
+              if (hasMem) {
+                currentlogWriter.writeMemInfo(memInfo);
+              }
+              for (int i = 0; i < components; i++) {
+                IterationData data = dataTemp[i];
+                if (data != null) {
+                  String name = powerComponents.get(i).getComponentName();
+                  SparseArray<PowerData> uidData = data.getUidPowerData();
+                  for (int j = 0; j < uidData.size(); j++) {
+                    int uid = uidData.keyAt(j);
+                    PowerData powerData = uidData.valueAt(j);
+                    currentlogWriter.writeSingleDataPoint(iter, name, uid, powerData);
+                  }
                 }
               }
+            } catch (IOException e) {
+              Log.w(TAG, "Failed to write to log file");
             }
-          } catch (IOException e) {
-            Log.w(TAG, "Failed to write to log file");
-          }
-
+        }
         // Recycle the data
         for (int i = 0; i < dataTemp.length; i++) {
           IterationData iterationData = dataTemp[i];
@@ -394,12 +413,13 @@ public class PowerEstimator implements Runnable {
      * before we have to quit.
      */
     synchronized (fileWriteLock) {
-      if (logStream != null)
+      for (LogWriter currentLogWriter : logWriter) {
         try {
-          logStream.close();
+          currentLogWriter.close();
         } catch (IOException e) {
           Log.w(TAG, "Failed to flush log file on exit");
         }
+      }
     }
   }
 
