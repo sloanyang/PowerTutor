@@ -19,15 +19,12 @@ Please send inquiries to powertutor@umich.edu
 
 package edu.umich.PowerTutor.components;
 
-import edu.umich.PowerTutor.PowerNotifications;
-import edu.umich.PowerTutor.phone.PhoneConstants;
-import edu.umich.PowerTutor.service.IterationData;
-import edu.umich.PowerTutor.service.PowerData;
-import edu.umich.PowerTutor.util.NativeLoader;
-import edu.umich.PowerTutor.util.NotificationService;
-import edu.umich.PowerTutor.util.Recycler;
-import edu.umich.PowerTutor.util.SystemInfo;
-import edu.umich.PowerTutor.util.ForegroundDetector;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Random;
 
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
@@ -35,24 +32,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.provider.Settings;
-import android.os.Process;
-import android.util.Log;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.WindowManager;
-
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.RandomAccessFile;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.List;
-import java.util.Random;
-
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
+import edu.umich.PowerTutor.phone.PhoneConstants;
+import edu.umich.PowerTutor.service.IterationData;
+import edu.umich.PowerTutor.service.PowerData;
+import edu.umich.PowerTutor.util.ForegroundDetector;
+import edu.umich.PowerTutor.util.NativeLoader;
+import edu.umich.PowerTutor.util.Recycler;
+import edu.umich.PowerTutor.util.SystemInfo;
 
 public class OLED extends PowerComponent {
   public static class OledData extends PowerData {
@@ -87,10 +76,12 @@ public class OLED extends PowerComponent {
       this.pixPower = pixPower;
     }
 
-    public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
-      out.write("OLED-brightness " + brightness + "\n");
-      out.write("OLED-pix-power " + pixPower + "\n");
-      out.write("OLED-screen-on " + screenOn + "\n");
+    public String getLogDataInfo() throws IOException {
+      StringBuilder sb = new StringBuilder();
+      sb.append("OLED-brightness " + brightness + "\n");
+      sb.append("OLED-pix-power " + pixPower + "\n");
+      sb.append("OLED-screen-on " + screenOn + "\n");
+      return sb.toString();
     }
   }
 

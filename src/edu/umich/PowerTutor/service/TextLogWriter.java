@@ -29,7 +29,7 @@ public class TextLogWriter implements LogWriter {
     long roundedCachePower = (long) Math.round(powerData.getCachedPower());
     if (uid == SystemInfo.AID_ALL) {
       logStream.write(name + " " + roundedCachePower + "\n");
-      powerData.writeLogDataInfo(logStream);
+      logStream.write(powerData.getLogDataInfo());
     } else {
       logStream.write(name + "-" + uid + " " + roundedCachePower + "\n");
     }

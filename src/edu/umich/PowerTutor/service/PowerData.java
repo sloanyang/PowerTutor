@@ -19,7 +19,6 @@ Please send inquiries to powertutor@umich.edu
 
 package edu.umich.PowerTutor.service;
 
-import java.io.OutputStreamWriter;
 import java.io.IOException;
 import java.util.Vector;
 
@@ -45,5 +44,5 @@ public abstract class PowerData {
   }
 
   /* Simply writes out log information to the passed stream. */
-  public abstract void writeLogDataInfo(OutputStreamWriter out) throws IOException;
+  public abstract String getLogDataInfo() throws IOException;
 }

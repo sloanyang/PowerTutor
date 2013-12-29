@@ -19,13 +19,8 @@ Please send inquiries to powertutor@umich.edu
 
 package edu.umich.PowerTutor.components;
 
-import edu.umich.PowerTutor.PowerNotifications;
-import edu.umich.PowerTutor.phone.PhoneConstants;
-import edu.umich.PowerTutor.service.IterationData;
-import edu.umich.PowerTutor.service.PowerData;
-import edu.umich.PowerTutor.util.NotificationService;
-import edu.umich.PowerTutor.util.Recycler;
-import edu.umich.PowerTutor.util.SystemInfo;
+import java.io.File;
+import java.io.IOException;
 
 import android.content.Context;
 import android.location.GpsSatellite;
@@ -35,14 +30,13 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.SparseArray;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.Map;
+import edu.umich.PowerTutor.PowerNotifications;
+import edu.umich.PowerTutor.phone.PhoneConstants;
+import edu.umich.PowerTutor.service.IterationData;
+import edu.umich.PowerTutor.service.PowerData;
+import edu.umich.PowerTutor.util.NotificationService;
+import edu.umich.PowerTutor.util.Recycler;
+import edu.umich.PowerTutor.util.SystemInfo;
 
 public class GPS extends PowerComponent {
   public static class GpsData extends PowerData {
@@ -80,14 +74,14 @@ public class GPS extends PowerComponent {
     }
 
     @Override
-    public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
+    public String getLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("GPS-state-times");
       for (int i = 0; i < GPS.POWER_STATES; i++) {
         res.append(" ").append(stateTimes[i]);
       }
       res.append("\nGPS-sattelites ").append(satellites).append("\n");
-      out.write(res.toString());
+      return (res.toString());
     }
   }
 

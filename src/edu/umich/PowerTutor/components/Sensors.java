@@ -33,7 +33,6 @@ import android.util.Log;
 import android.util.SparseArray;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Map;
@@ -64,14 +63,14 @@ public class Sensors extends PowerComponent {
       onTime = new double[MAX_SENSORS];
     }
 
-    public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
+    public String getLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       for (int i = 0; i < MAX_SENSORS; i++) {
         if (onTime[i] > 1e-7) {
           res.append("Sensors-time ").append(i).append(" ").append(onTime[i]).append("\n");
         }
       }
-      out.write(res.toString());
+      return (res.toString());
     }
   }
 

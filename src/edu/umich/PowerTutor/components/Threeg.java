@@ -19,26 +19,20 @@ Please send inquiries to powertutor@umich.edu
 
 package edu.umich.PowerTutor.components;
 
+import java.io.File;
+import java.io.IOException;
+
+import android.content.Context;
+import android.os.SystemClock;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.util.SparseArray;
 import edu.umich.PowerTutor.phone.PhoneConstants;
 import edu.umich.PowerTutor.service.IterationData;
 import edu.umich.PowerTutor.service.PowerData;
 import edu.umich.PowerTutor.service.PowerEstimator;
 import edu.umich.PowerTutor.util.Recycler;
 import edu.umich.PowerTutor.util.SystemInfo;
-
-import android.content.Context;
-import android.os.SystemClock;
-import android.util.Log;
-import android.util.SparseArray;
-import android.telephony.TelephonyManager;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.RandomAccessFile;
 
 public class Threeg extends PowerComponent {
   public static class ThreegData extends PowerData {
@@ -79,7 +73,7 @@ public class Threeg extends PowerComponent {
       this.oper = oper;
     }
 
-    public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
+    public String getLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("3G-on ").append(threegOn).append("\n");
       if (threegOn) {
@@ -87,7 +81,7 @@ public class Threeg extends PowerComponent {
             .append("\n3G-packets ").append(packets).append("\n3G-state ").append(Threeg.POWER_STATE_NAMES[powerState])
             .append("\n3G-oper ").append(oper).append("\n");
       }
-      out.write(res.toString());
+      return (res.toString());
     }
   }
 

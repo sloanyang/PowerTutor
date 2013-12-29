@@ -19,18 +19,16 @@ Please send inquiries to powertutor@umich.edu
 
 package edu.umich.PowerTutor.components;
 
+import java.io.IOException;
+import java.util.TreeSet;
+
+import android.content.Context;
+import android.media.AudioManager;
 import edu.umich.PowerTutor.PowerNotifications;
 import edu.umich.PowerTutor.service.IterationData;
 import edu.umich.PowerTutor.service.PowerData;
 import edu.umich.PowerTutor.util.NotificationService;
 import edu.umich.PowerTutor.util.Recycler;
-
-import android.content.Context;
-import android.media.AudioManager;
-
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.TreeSet;
 
 /** This class aims to log the audio device status once per log interval */
 public class Audio extends PowerComponent {
@@ -59,8 +57,8 @@ public class Audio extends PowerComponent {
       this.musicOn = musicOn;
     }
 
-    public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
-      out.write("Audio-on " + musicOn + "\n");
+    public String getLogDataInfo() throws IOException {
+      return "Audio-on " + musicOn + "\n";
     }
   }
 

@@ -19,13 +19,8 @@ Please send inquiries to powertutor@umich.edu
 
 package edu.umich.PowerTutor.components;
 
-import edu.umich.PowerTutor.PowerNotifications;
-import edu.umich.PowerTutor.service.IterationData;
-import edu.umich.PowerTutor.service.PowerData;
-import edu.umich.PowerTutor.util.ForegroundDetector;
-import edu.umich.PowerTutor.util.NotificationService;
-import edu.umich.PowerTutor.util.Recycler;
-import edu.umich.PowerTutor.util.SystemInfo;
+import java.io.File;
+import java.io.IOException;
 
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
@@ -33,13 +28,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.provider.Settings;
-import android.os.Process;
 import android.util.Log;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.List;
+import edu.umich.PowerTutor.service.IterationData;
+import edu.umich.PowerTutor.service.PowerData;
+import edu.umich.PowerTutor.util.ForegroundDetector;
+import edu.umich.PowerTutor.util.Recycler;
+import edu.umich.PowerTutor.util.SystemInfo;
 
 public class LCD extends PowerComponent {
   public static class LcdData extends PowerData {
@@ -68,10 +62,10 @@ public class LCD extends PowerComponent {
       this.screenOn = screenOn;
     }
 
-    public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
+    public String getLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("LCD-brightness ").append(brightness).append("\nLCD-screen-on ").append(screenOn).append("\n");
-      out.write(res.toString());
+      return res.toString();
     }
   }
 

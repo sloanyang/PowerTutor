@@ -22,14 +22,19 @@ public class CsvLogWriter implements LogWriter {
 
   @Override
   public void writeSingleDataPoint(long iteration, String name, int uid, PowerData powerData) throws IOException {
-    osw.append(name).append(SEP);
-    osw.append("" + iteration).append(SEP);
-    osw.append("" + uid).append(SEP);
+    writeCell(name);
+    writeCell("" + iteration);
+    writeCell("" + uid);
     if (powerData != null) {
-      osw.write("" + powerData.getCachedPower());
+      writeCell("" + powerData.getCachedPower());
+      writeCell(powerData.getLogDataInfo());
     }
     osw.write(NL);
     osw.flush();
+  }
+
+  public void writeCell(String string) throws IOException {
+    osw.append("\"" + string + "\"").append(SEP);
   }
 
   @Override

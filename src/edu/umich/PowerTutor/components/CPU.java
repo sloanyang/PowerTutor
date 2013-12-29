@@ -19,24 +19,18 @@ Please send inquiries to powertutor@umich.edu
 
 package edu.umich.PowerTutor.components;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
+import android.util.Log;
+import android.util.SparseArray;
 import edu.umich.PowerTutor.phone.PhoneConstants;
 import edu.umich.PowerTutor.service.IterationData;
 import edu.umich.PowerTutor.service.PowerData;
 import edu.umich.PowerTutor.util.Recycler;
 import edu.umich.PowerTutor.util.SystemInfo;
-
-import android.util.Log;
-import android.os.Process;
-import android.os.SystemClock;
-import android.util.SparseArray;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
 
 public class CPU extends PowerComponent {
   public static class CpuData extends PowerData {
@@ -67,11 +61,11 @@ public class CPU extends PowerComponent {
       this.freq = freq;
     }
 
-    public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
+    public String getLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("CPU-sys ").append((long) Math.round(sysPerc)).append("\nCPU-usr ").append((long) Math.round(usrPerc))
           .append("\nCPU-freq ").append(freq).append("\n");
-      out.write(res.toString());
+      return res.toString();
     }
   }
 
