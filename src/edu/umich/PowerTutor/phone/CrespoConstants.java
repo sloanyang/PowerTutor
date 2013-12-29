@@ -79,11 +79,11 @@ public class CrespoConstants extends DreamConstants {
   }
 
   public double wifiLowPower() {
-    return 120;
+    return 4;
   }
 
   public double wifiHighPower() {
-    return 220;
+    return 4;
   }
 
   public double wifiLowHighTransition() {
@@ -94,14 +94,36 @@ public class CrespoConstants extends DreamConstants {
     return 5;
   }
 
-  private static final double[] arrayWifiLinkRatios = { 47.122645, 46.354821, 43.667437, 43.283525, 40.980053,
-      39.44422, 38.676581, 34.069637, 29.462693, 20.248805, 11.034917, 6.427122 };
+  /*
+   * 
+   * <-- from Fuelgauge: BIT RATE / private double getAverageDataCost() { final
+   * long WIFI_BPS = 1000000; // TODO: Extract average bit rates from system
+   * final long MOBILE_BPS = 200000; // TODO: Extract average bit rates from
+   * system final double WIFI_POWER =
+   * mPowerProfile.getAveragePower(PowerProfile.POWER_WIFI_ACTIVE) / 3600; final
+   * double MOBILE_POWER =
+   * mPowerProfile.getAveragePower(PowerProfile.POWER_RADIO_ACTIVE) / 3600;
+   * final long mobileData = mStats.getMobileTcpBytesReceived(mStatsType) +
+   * mStats.getMobileTcpBytesSent(mStatsType); final long wifiData =
+   * mStats.getTotalTcpBytesReceived(mStatsType) +
+   * mStats.getTotalTcpBytesSent(mStatsType) - mobileData; final long
+   * radioDataUptimeMs = mStats.getRadioDataUptime() / 1000; final long
+   * mobileBps = radioDataUptimeMs != 0 ? mobileData * 8 * 1000 /
+   * radioDataUptimeMs : MOBILE_BPS;
+   * 
+   * double mobileCostPerByte = MOBILE_POWER / (mobileBps / 8); double
+   * wifiCostPerByte = WIFI_POWER / (WIFI_BPS / 8); if (wifiData + mobileData !=
+   * 0) { return (mobileCostPerByte * mobileData + wifiCostPerByte * wifiData) /
+   * (mobileData + wifiData); } else { return 0; } }
+   */
+  private static final double[] arrayWifiLinkRatios = { 120 / (6.5 / 8 * 1000 * 1000) };
 
   public double[] wifiLinkRatios() {
     return arrayWifiLinkRatios;
   }
 
-  private static final double[] arrayWifiLinkSpeeds = { 1, 2, 5.5, 6, 9, 11, 12, 18, 24, 36, 48, 54 };
+  /* ONLY ONE LINK SPEED */
+  private static final double[] arrayWifiLinkSpeeds = { 65 };
 
   public double[] wifiLinkSpeeds() {
     return arrayWifiLinkSpeeds;
