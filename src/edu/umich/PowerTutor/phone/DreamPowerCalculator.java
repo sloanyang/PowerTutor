@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.phone;
 
@@ -43,34 +43,37 @@ public class DreamPowerCalculator implements PhonePowerCalculator {
   }
 
   public double getLcdPower(LcdData data) {
-    return data.screenOn ?
-           coeffs.lcdBrightness() * data.brightness + coeffs.lcdBacklight() : 0;
-  } 
+    return data.screenOn ? coeffs.lcdBrightness() * data.brightness + coeffs.lcdBacklight() : 0;
+  }
 
   public double getOledPower(OledData data) {
     throw new RuntimeException("getOledPower() should not be called for Dream");
   }
 
   public double getCpuPower(CpuData data) {
-    /* Find the two nearest cpu frequency and linearly interpolate
-     * the power ratio for that frequency.
+    /*
+     * Find the two nearest cpu frequency and linearly interpolate the power
+     * ratio for that frequency.
      */
     double[] powerRatios = coeffs.cpuPowerRatios();
     double[] freqs = coeffs.cpuFreqs();
     double ratio;
-    if(powerRatios.length == 1) {
+    if (powerRatios.length == 1) {
       ratio = powerRatios[0];
     } else {
       double sfreq = data.freq;
-      if(sfreq < freqs[0]) sfreq = freqs[0];
-      if(sfreq > freqs[freqs.length - 1]) sfreq = freqs[freqs.length - 1];
+      if (sfreq < freqs[0])
+        sfreq = freqs[0];
+      if (sfreq > freqs[freqs.length - 1])
+        sfreq = freqs[freqs.length - 1];
 
       int ind = upperBound(freqs, sfreq);
-      if(ind == 0) ind++;
-      if(ind == freqs.length) ind--;
-      ratio = powerRatios[ind - 1] + (powerRatios[ind] - powerRatios[ind - 1]) /
-                                     (freqs[ind] - freqs[ind - 1]) *
-                                     (sfreq - freqs[ind - 1]);
+      if (ind == 0)
+        ind++;
+      if (ind == freqs.length)
+        ind--;
+      ratio = powerRatios[ind - 1] + (powerRatios[ind] - powerRatios[ind - 1]) / (freqs[ind] - freqs[ind - 1])
+          * (sfreq - freqs[ind - 1]);
     }
     return Math.max(0, ratio * (data.usrPerc + data.sysPerc));
   }
@@ -82,36 +85,39 @@ public class DreamPowerCalculator implements PhonePowerCalculator {
   public double getGpsPower(GpsData data) {
     double result = 0;
     double statePower[] = coeffs.gpsStatePower();
-    for(int i = 0; i < GPS.POWER_STATES; i++) {
+    for (int i = 0; i < GPS.POWER_STATES; i++) {
       result += data.stateTimes[i] * statePower[i];
     }
     return result;
   }
 
   public double getWifiPower(WifiData data) {
-    if(!data.wifiOn) {
+    if (!data.wifiOn) {
       return 0;
-    } else if(data.powerState == Wifi.POWER_STATE_LOW) {
+    } else if (data.powerState == Wifi.POWER_STATE_LOW) {
       return coeffs.wifiLowPower();
-    } else if(data.powerState == Wifi.POWER_STATE_HIGH) {
+    } else if (data.powerState == Wifi.POWER_STATE_HIGH) {
       double[] linkSpeeds = coeffs.wifiLinkSpeeds();
       double[] linkRatios = coeffs.wifiLinkRatios();
       double ratio;
-      if(linkSpeeds.length == 1) {
-        /* If there is only one set speed we have to use its ratio as we have
+      if (linkSpeeds.length == 1) {
+        /*
+         * If there is only one set speed we have to use its ratio as we have
          * nothing else to go on.
          */
         ratio = linkRatios[0];
       } else {
-        /* Find the two nearest speed/ratio pairs and linearly interpolate
-         * the ratio for this link speed.
+        /*
+         * Find the two nearest speed/ratio pairs and linearly interpolate the
+         * ratio for this link speed.
          */
         int ind = upperBound(linkSpeeds, data.linkSpeed);
-        if(ind == 0) ind++;
-        if(ind == linkSpeeds.length) ind--;
-        ratio = linkRatios[ind - 1] + (linkRatios[ind] - linkRatios[ind - 1]) /
-                                      (linkSpeeds[ind] - linkSpeeds[ind - 1]) *
-                                      (data.linkSpeed - linkSpeeds[ind - 1]);
+        if (ind == 0)
+          ind++;
+        if (ind == linkSpeeds.length)
+          ind--;
+        ratio = linkRatios[ind - 1] + (linkRatios[ind] - linkRatios[ind - 1]) / (linkSpeeds[ind] - linkSpeeds[ind - 1])
+            * (data.linkSpeed - linkSpeeds[ind - 1]);
       }
       return Math.max(0, coeffs.wifiHighPower() + ratio * data.uplinkRate);
     }
@@ -119,16 +125,16 @@ public class DreamPowerCalculator implements PhonePowerCalculator {
   }
 
   public double getThreeGPower(ThreegData data) {
-    if(!data.threegOn) {
+    if (!data.threegOn) {
       return 0;
     } else {
-      switch(data.powerState) {
-        case Threeg.POWER_STATE_IDLE:
-          return coeffs.threegIdlePower(data.oper);
-        case Threeg.POWER_STATE_FACH:
-          return coeffs.threegFachPower(data.oper);
-        case Threeg.POWER_STATE_DCH:
-          return coeffs.threegDchPower(data.oper);
+      switch (data.powerState) {
+      case Threeg.POWER_STATE_IDLE:
+        return coeffs.threegIdlePower(data.oper);
+      case Threeg.POWER_STATE_FACH:
+        return coeffs.threegFachPower(data.oper);
+      case Threeg.POWER_STATE_DCH:
+        return coeffs.threegDchPower(data.oper);
       }
     }
     return 0;
@@ -137,21 +143,22 @@ public class DreamPowerCalculator implements PhonePowerCalculator {
   public double getSensorPower(SensorData data) {
     double result = 0;
     double[] powerUse = coeffs.sensorPower();
-    for(int i = 0; i < Sensors.MAX_SENSORS; i++) {
+    for (int i = 0; i < Sensors.MAX_SENSORS; i++) {
       result += data.onTime[i] * powerUse[i];
     }
     return result;
   }
 
-  /* Returns the largest index y such that if x were inserted into A (which
+  /*
+   * Returns the largest index y such that if x were inserted into A (which
    * should already be sorted) at y then A would remain sorted.
    */
   protected static int upperBound(double[] A, double x) {
     int lo = 0;
     int hi = A.length;
-    while(lo < hi) {
+    while (lo < hi) {
       int mid = lo + (hi - lo) / 2;
-      if(A[mid] <= x) {
+      if (A[mid] <= x) {
         lo = mid + 1;
       } else {
         hi = mid;
@@ -160,4 +167,3 @@ public class DreamPowerCalculator implements PhonePowerCalculator {
     return lo;
   }
 }
-

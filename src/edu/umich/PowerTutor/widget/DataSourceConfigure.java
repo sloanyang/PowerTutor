@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.widget;
 
@@ -51,11 +51,11 @@ public class DataSourceConfigure extends Activity {
 
     Intent intent = getIntent();
     Bundle extras = intent.getExtras();
-    if(extras != null) {
-      dataSource = (DataSource)extras.getSerializable("data_source");
+    if (extras != null) {
+      dataSource = (DataSource) extras.getSerializable("data_source");
       level = extras.getInt("level");
     }
-    if(dataSource == null) {
+    if (dataSource == null) {
       dataSource = new DataSource();
       level = 0;
     }
@@ -66,11 +66,10 @@ public class DataSourceConfigure extends Activity {
     final ListView listView = new ListView(this);
     ArrayAdapter adapter = new ArrayAdapter(this, 0) {
       public View getView(int position, View convertView, ViewGroup parent) {
-        View itemView = getLayoutInflater()
-            .inflate(R.layout.widget_item_layout, listView, false);
-        TextView title = (TextView)itemView.findViewById(R.id.title);
-        TextView summary = (TextView)itemView.findViewById(R.id.summary);
-        Item item = (Item)getItem(position);
+        View itemView = getLayoutInflater().inflate(R.layout.widget_item_layout, listView, false);
+        TextView title = (TextView) itemView.findViewById(R.id.title);
+        TextView summary = (TextView) itemView.findViewById(R.id.summary);
+        Item item = (Item) getItem(position);
         item.setupView(title, summary);
         return itemView;
       }
@@ -78,16 +77,15 @@ public class DataSourceConfigure extends Activity {
 
     int pos = 0;
     final Item[] items = new Item[shortOptions.length];
-    for(int i = 0; i < shortOptions.length; i++) {
-      if(dataSource.hasOption(level, i)) {
+    for (int i = 0; i < shortOptions.length; i++) {
+      if (dataSource.hasOption(level, i)) {
         items[pos] = new Item(i);
         adapter.add(items[pos++]);
       }
     }
     listView.setAdapter(adapter);
     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-      public void onItemClick(AdapterView parent, View view,
-                              int position, long id) {
+      public void onItemClick(AdapterView parent, View view, int position, long id) {
         items[position].onClick();
       }
     });
@@ -96,7 +94,7 @@ public class DataSourceConfigure extends Activity {
 
   @Override
   protected void onActivityResult(int reqCode, int resCode, Intent data) {
-    if(resCode == RESULT_OK) {
+    if (resCode == RESULT_OK) {
       Intent resultValue = new Intent();
       resultValue.putExtras(data);
       setResult(RESULT_OK, resultValue);
@@ -110,21 +108,20 @@ public class DataSourceConfigure extends Activity {
     public Item(int id) {
       this.id = id;
     }
-  
+
     public void setupView(TextView title, TextView summary) {
       title.setText(shortOptions[id]);
       summary.setText(longOptions[id]);
     }
 
     public void onClick() {
-      if(dataSource.setParam(level, id)) {
+      if (dataSource.setParam(level, id)) {
         Intent resultValue = new Intent();
         resultValue.putExtra("data_source", dataSource);
         setResult(RESULT_OK, resultValue);
         finish();
       } else {
-        Intent startIntent = new Intent(DataSourceConfigure.this,
-                                        DataSourceConfigure.class);
+        Intent startIntent = new Intent(DataSourceConfigure.this, DataSourceConfigure.class);
         startIntent.putExtra("data_source", dataSource);
         startIntent.putExtra("level", level + 1);
         startActivityForResult(startIntent, 0);

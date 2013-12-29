@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.ui;
 
@@ -30,12 +30,10 @@ import android.preference.PreferenceManager;
 public class StartupReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
-    SharedPreferences prefs =
-        PreferenceManager.getDefaultSharedPreferences(context);
-    if(prefs.getBoolean("runOnStartup", true)) {
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    if (prefs.getBoolean("runOnStartup", true)) {
       Intent serviceIntent = new Intent(context, UMLoggerService.class);
       context.startService(serviceIntent);
     }
   }
 }
-

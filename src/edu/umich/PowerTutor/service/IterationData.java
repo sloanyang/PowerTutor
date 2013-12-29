@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.service;
 
@@ -29,14 +29,14 @@ import android.util.SparseArray;
  * component.
  */
 public class IterationData {
-  private static Recycler<IterationData> recycler =
-      new Recycler<IterationData>();
+  private static Recycler<IterationData> recycler = new Recycler<IterationData>();
 
   private SparseArray<PowerData> uidPower;
 
   public static IterationData obtain() {
     IterationData result = recycler.obtain();
-    if(result != null) return result;
+    if (result != null)
+      return result;
     return new IterationData();
   }
 
@@ -44,24 +44,26 @@ public class IterationData {
     uidPower = new SparseArray<PowerData>();
   }
 
-  /* Initialize the members of this structure.  Remember that this class may not
+  /*
+   * Initialize the members of this structure. Remember that this class may not
    * have just been instantiated and may have been used in past iterations.
    */
   public void init() {
     uidPower.clear();
   }
 
-  /* Allow this class to be recycled and to recycle all of the PowerData
+  /*
+   * Allow this class to be recycled and to recycle all of the PowerData
    * PowerData elements contained within it.
    */
   public void recycle() {
-    for(int i = 0; i < uidPower.size(); i++) {
+    for (int i = 0; i < uidPower.size(); i++) {
       uidPower.valueAt(i).recycle();
     }
     uidPower.clear();
     recycler.recycle(this);
   }
-  
+
   public void setPowerData(PowerData power) {
     addUidPowerData(SystemInfo.AID_ALL, power);
   }

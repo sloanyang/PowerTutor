@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.ui;
 
@@ -73,7 +73,7 @@ public class PowerViewer extends Activity {
   private LinearLayout chartLayout;
 
   public void refreshView() {
-    if(counterService == null) {
+    if (counterService == null) {
       TextView loadingText = new TextView(this);
       loadingText.setText("Waiting for profiler service...");
       loadingText.setGravity(Gravity.CENTER);
@@ -84,15 +84,16 @@ public class PowerViewer extends Activity {
     chartLayout = new LinearLayout(this);
     chartLayout.setOrientation(LinearLayout.VERTICAL);
 
-    if(uid == SystemInfo.AID_ALL) {
-      /* If we are reporting global power usage then just set noUidMask to 0 so
+    if (uid == SystemInfo.AID_ALL) {
+      /*
+       * If we are reporting global power usage then just set noUidMask to 0 so
        * that all components get displayed.
        */
       noUidMask = 0;
     }
     components = 0;
-    for(int i = 0; i < componentNames.length; i++) {
-      if((noUidMask & 1 << i) == 0) {
+    for (int i = 0; i < componentNames.length; i++) {
+      if ((noUidMask & 1 << i) == 0) {
         components++;
       }
     }
@@ -100,8 +101,8 @@ public class PowerViewer extends Activity {
     collectors = new ValueCollector[(showTotal ? 1 : 0) + components];
 
     int pos = 0;
-    for(int i = showTotal ? -1 : 0; i < componentNames.length; i++) {
-      if(i != -1 && (noUidMask & 1 << i) != 0) {
+    for (int i = showTotal ? -1 : 0; i < componentNames.length; i++) {
+      if (i != -1 && (noUidMask & 1 << i) != 0) {
         continue;
       }
       String name = i == -1 ? "Total" : componentNames[i];
@@ -110,36 +111,35 @@ public class PowerViewer extends Activity {
       XYSeries series = new XYSeries(name);
       XYMultipleSeriesDataset mseries = new XYMultipleSeriesDataset();
       mseries.addSeries(series);
-      
+
       XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
       XYSeriesRenderer srenderer = new XYSeriesRenderer();
       renderer.setYAxisMin(0.0);
       renderer.setYAxisMax(mxPower);
       renderer.setYTitle(name + "(mW)");
-      
-      int clr = PowerPie.COLORS[(PowerPie.COLORS.length + i) %
-                                 PowerPie.COLORS.length];
+
+      int clr = PowerPie.COLORS[(PowerPie.COLORS.length + i) % PowerPie.COLORS.length];
       srenderer.setColor(clr);
       srenderer.setFillBelowLine(true);
-      srenderer.setFillBelowLineColor(((clr >> 1) & 0x7F7F7F) |
-                                       (clr & 0xFF000000));
+      srenderer.setFillBelowLineColor(((clr >> 1) & 0x7F7F7F) | (clr & 0xFF000000));
       renderer.addSeriesRenderer(srenderer);
-      
-      View chartView = new GraphicalView(this,
-    		  new CubicLineChart(mseries, renderer, 0.5f));
+
+      View chartView = new GraphicalView(this, new CubicLineChart(mseries, renderer, 0.5f));
       chartView.setMinimumHeight(100);
       chartLayout.addView(chartView);
 
       collectors[pos] = new ValueCollector(series, renderer, chartView, i);
-      if(handler != null) {
+      if (handler != null) {
         handler.post(collectors[pos]);
       }
       pos++;
     }
 
-    /* We're giving 100 pixels per graph of vertical space for the chart view.
-       If we don't specify a minimum height the chart view ends up having a
-       height of 0 so this is important. */
+    /*
+     * We're giving 100 pixels per graph of vertical space for the chart view.
+     * If we don't specify a minimum height the chart view ends up having a
+     * height of 0 so this is important.
+     */
     chartLayout.setMinimumHeight(100 * components);
 
     ScrollView scrollView = new ScrollView(this) {
@@ -154,15 +154,14 @@ public class PowerViewer extends Activity {
   }
 
   private class CounterServiceConnection implements ServiceConnection {
-    public void onServiceConnected(ComponentName className, 
-                                   IBinder boundService) {
-      counterService = ICounterService.Stub.asInterface((IBinder)boundService);
+    public void onServiceConnected(ComponentName className, IBinder boundService) {
+      counterService = ICounterService.Stub.asInterface((IBinder) boundService);
       try {
         componentNames = counterService.getComponents();
         componentsMaxPower = counterService.getComponentsMaxPower();
         noUidMask = counterService.getNoUidMask();
         refreshView();
-      } catch(RemoteException e) {
+      } catch (RemoteException e) {
         counterService = null;
       }
     }
@@ -182,7 +181,7 @@ public class PowerViewer extends Activity {
     uid = getIntent().getIntExtra("uid", SystemInfo.AID_ALL);
 
     collecting = true;
-    if(savedInstanceState != null) {
+    if (savedInstanceState != null) {
       collecting = savedInstanceState.getBoolean("collecting", true);
       componentNames = savedInstanceState.getStringArray("componentNames");
       noUidMask = savedInstanceState.getInt("noUidMask");
@@ -191,7 +190,7 @@ public class PowerViewer extends Activity {
     serviceIntent = new Intent(this, UMLoggerService.class);
     conn = new CounterServiceConnection();
   }
-  
+
   @Override
   protected void onResume() {
     super.onResume();
@@ -205,9 +204,10 @@ public class PowerViewer extends Activity {
   protected void onPause() {
     super.onPause();
     getApplicationContext().unbindService(conn);
-    if(collectors != null) for(int i = 0; i < components; i++) {
-      handler.removeCallbacks(collectors[i]);
-    }
+    if (collectors != null)
+      for (int i = 0; i < components; i++) {
+        handler.removeCallbacks(collectors[i]);
+      }
     counterService = null;
     handler = null;
     collecting = true;
@@ -223,7 +223,7 @@ public class PowerViewer extends Activity {
 
   /* Let all of the UI graphs lay themselves out again. */
   private void stateChanged() {
-    for(int i = 0; i < components; i++) {
+    for (int i = 0; i < components; i++) {
       collectors[i].layout();
     }
   }
@@ -240,28 +240,30 @@ public class PowerViewer extends Activity {
 
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
-    menu.findItem(MENU_TOGGLE_COLLECTING).setTitle(
-        collecting ? "Pause" : "Resume");
+    menu.findItem(MENU_TOGGLE_COLLECTING).setTitle(collecting ? "Pause" : "Resume");
     return true;
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    switch(item.getItemId()) {
-      case MENU_OPTIONS:
-        startActivity(new Intent(this, ViewerPreferences.class));
-        return true;
-      case MENU_TOGGLE_COLLECTING:
-        collecting = !collecting;
-        if(handler != null) {
-          if(collecting) for(int i = 0; i < components; i++) {
+    switch (item.getItemId()) {
+    case MENU_OPTIONS:
+      startActivity(new Intent(this, ViewerPreferences.class));
+      return true;
+    case MENU_TOGGLE_COLLECTING:
+      collecting = !collecting;
+      if (handler != null) {
+        if (collecting)
+          for (int i = 0; i < components; i++) {
             collectors[i].reset();
             handler.post(collectors[i]);
-          } else for(int i = 0; i < components; i++) {
+          }
+        else
+          for (int i = 0; i < components; i++) {
             handler.removeCallbacks(collectors[i]);
           }
-        }
-        break;
+      }
+      break;
     }
     return false;
   }
@@ -270,7 +272,7 @@ public class PowerViewer extends Activity {
     private XYSeries series;
     private XYMultipleSeriesRenderer renderer;
     private View chartView;
-    
+
     private int componentId;
     private long lastTime;
 
@@ -278,8 +280,7 @@ public class PowerViewer extends Activity {
 
     private boolean readHistory;
 
-    public ValueCollector(XYSeries series, XYMultipleSeriesRenderer renderer,
-                          View chartView, int componentId) {
+    public ValueCollector(XYSeries series, XYMultipleSeriesRenderer renderer, View chartView, int componentId) {
       this.series = series;
       this.renderer = renderer;
       this.chartView = chartView;
@@ -291,13 +292,13 @@ public class PowerViewer extends Activity {
     public void layout() {
       int numVals = Integer.parseInt(prefs.getString("viewNumValues_s", "60"));
       values = new int[numVals];
-      
+
       renderer.clearXTextLabels();
       renderer.setXAxisMin(0);
       renderer.setXAxisMax(numVals - 1);
       renderer.addXTextLabel(numVals - 1, "" + numVals);
       renderer.setXLabels(0);
-      for(int j = 0; j < 10; j++) {
+      for (int j = 0; j < 10; j++) {
         renderer.addXTextLabel(numVals * j / 10, "" + (1 + numVals * j / 10));
       }
 
@@ -312,38 +313,36 @@ public class PowerViewer extends Activity {
 
     public void run() {
       int numVals = Integer.parseInt(prefs.getString("viewNumValues_s", "60"));
-      if(counterService != null) try {
-        if(readHistory) {
-          values = counterService.getComponentHistory(numVals,
-                                                      componentId, uid);
-          readHistory = false;
-        } else {
-          for(int i = numVals - 1; i > 0; i--) {
-            values[i] = values[i - 1];
+      if (counterService != null)
+        try {
+          if (readHistory) {
+            values = counterService.getComponentHistory(numVals, componentId, uid);
+            readHistory = false;
+          } else {
+            for (int i = numVals - 1; i > 0; i--) {
+              values[i] = values[i - 1];
+            }
+            values[0] = counterService.getComponentHistory(1, componentId, uid)[0];
           }
-          values[0] = counterService.getComponentHistory(1, componentId,
-                                                         uid)[0];
+        } catch (RemoteException e) {
+          Log.w(TAG, "Failed to get data from service");
+          for (int i = 0; i < numVals; i++) {
+            values[i] = 0;
+          }
         }
-      } catch(RemoteException e) {
-        Log.w(TAG, "Failed to get data from service");
-        for(int i = 0; i < numVals; i++) {
-          values[i] = 0;
-        }
-      }
 
       series.clear();
-      for(int i = 0; i < numVals; i++) {
+      for (int i = 0; i < numVals; i++) {
         series.add(i, values[i]);
       }
-      
+
       long curTime = SystemClock.elapsedRealtime();
-      long tryTime = lastTime + PowerEstimator.ITERATION_INTERVAL *
-                     (long)Math.max(1, 1 + (curTime - lastTime) /
-                                    PowerEstimator.ITERATION_INTERVAL);
-      if(handler != null) {
+      long tryTime = lastTime + PowerEstimator.ITERATION_INTERVAL
+          * (long) Math.max(1, 1 + (curTime - lastTime) / PowerEstimator.ITERATION_INTERVAL);
+      if (handler != null) {
         handler.postDelayed(this, tryTime - curTime);
       }
-      
+
       chartView.invalidate();
     }
   };

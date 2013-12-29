@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.components;
 
@@ -46,7 +46,8 @@ public class Threeg extends PowerComponent {
 
     public static ThreegData obtain() {
       ThreegData result = recycler.obtain();
-      if(result != null) return result;
+      if (result != null)
+        return result;
       return new ThreegData();
     }
 
@@ -69,8 +70,7 @@ public class Threeg extends PowerComponent {
       threegOn = false;
     }
 
-    public void init(long packets, long uplinkBytes, long downlinkBytes,
-                     int powerState, String oper) {
+    public void init(long packets, long uplinkBytes, long downlinkBytes, int powerState, String oper) {
       threegOn = true;
       this.packets = packets;
       this.uplinkBytes = uplinkBytes;
@@ -82,13 +82,10 @@ public class Threeg extends PowerComponent {
     public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("3G-on ").append(threegOn).append("\n");
-      if(threegOn) {
-        res.append("3G-uplinkBytes ").append(uplinkBytes)
-           .append("\n3G-downlinkBytes ").append(downlinkBytes)
-           .append("\n3G-packets ").append(packets)
-           .append("\n3G-state ").append(Threeg.POWER_STATE_NAMES[powerState])
-           .append("\n3G-oper ").append(oper)
-           .append("\n");
+      if (threegOn) {
+        res.append("3G-uplinkBytes ").append(uplinkBytes).append("\n3G-downlinkBytes ").append(downlinkBytes)
+            .append("\n3G-packets ").append(packets).append("\n3G-state ").append(Threeg.POWER_STATE_NAMES[powerState])
+            .append("\n3G-oper ").append(oper).append("\n");
       }
       out.write(res.toString());
     }
@@ -97,7 +94,7 @@ public class Threeg extends PowerComponent {
   public static final int POWER_STATE_IDLE = 0;
   public static final int POWER_STATE_FACH = 1;
   public static final int POWER_STATE_DCH = 2;
-  public static final String[] POWER_STATE_NAMES = {"IDLE", "FACH", "DCH"};
+  public static final String[] POWER_STATE_NAMES = { "IDLE", "FACH", "DCH" };
 
   private static final String TAG = "Threeg";
 
@@ -110,7 +107,7 @@ public class Threeg extends PowerComponent {
   private int fachIdleDelay;
   private int uplinkQueueSize;
   private int downlinkQueueSize;
-  
+
   private int[] lastUids;
   private ThreegStateKeeper threegState;
   private SparseArray<ThreegStateKeeper> uidStates;
@@ -123,20 +120,15 @@ public class Threeg extends PowerComponent {
 
   public Threeg(Context context, PhoneConstants phoneConstants) {
     this.phoneConstants = phoneConstants;
-    telephonyManager = (TelephonyManager)context.getSystemService(
-                           Context.TELEPHONY_SERVICE);
+    telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
     String interfaceName = phoneConstants.threegInterface();
     threegState = new ThreegStateKeeper();
     uidStates = new SparseArray<ThreegStateKeeper>();
-    transPacketsFile = "/sys/devices/virtual/net/" +
-                       interfaceName + "/statistics/tx_packets";
-    readPacketsFile = "/sys/devices/virtual/net/" +
-                      interfaceName + "/statistics/rx_packets";
-    readBytesFile = "/sys/devices/virtual/net/" +
-                    interfaceName + "/statistics/rx_bytes";
-    transBytesFile = "/sys/devices/virtual/net/" +
-                     interfaceName + "/statistics/tx_bytes";
+    transPacketsFile = "/sys/devices/virtual/net/" + interfaceName + "/statistics/tx_packets";
+    readPacketsFile = "/sys/devices/virtual/net/" + interfaceName + "/statistics/rx_packets";
+    readBytesFile = "/sys/devices/virtual/net/" + interfaceName + "/statistics/rx_bytes";
+    transBytesFile = "/sys/devices/virtual/net/" + interfaceName + "/statistics/tx_bytes";
     uidStatsFolder = new File("/proc/uid_stat");
     sysInfo = SystemInfo.getInstance();
   }
@@ -147,18 +139,25 @@ public class Threeg extends PowerComponent {
 
     int netType = telephonyManager.getNetworkType();
 
-    if((netType != TelephonyManager.NETWORK_TYPE_UMTS &&
-        netType != 8/* TelephonyManager.NETWORK_TYPE_HSDPA */)) {
+    if ((netType != TelephonyManager.NETWORK_TYPE_UMTS && netType != 8/*
+                                                                       * TelephonyManager
+                                                                       * .
+                                                                       * NETWORK_TYPE_HSDPA
+                                                                       */)) {
       // TODO: Actually get models for the different network types.
       netType = TelephonyManager.NETWORK_TYPE_UMTS;
     }
 
-    if(telephonyManager.getDataState() != TelephonyManager.DATA_CONNECTED ||
-       (netType != TelephonyManager.NETWORK_TYPE_UMTS &&
-        netType != 8/* TelephonyManager.NETWORK_TYPE_HSDPA */)) {
-      /* We need to allow the real iterface state keeper to reset it's state
-       * so that the next update it knows it's coming back from an off state.
-       * We also need to clear all the uid information.
+    if (telephonyManager.getDataState() != TelephonyManager.DATA_CONNECTED
+        || (netType != TelephonyManager.NETWORK_TYPE_UMTS && netType != 8/*
+                                                                          * TelephonyManager
+                                                                          * .
+                                                                          * NETWORK_TYPE_HSDPA
+                                                                          */)) {
+      /*
+       * We need to allow the real iterface state keeper to reset it's state so
+       * that the next update it knows it's coming back from an off state. We
+       * also need to clear all the uid information.
        */
       oper = null;
       threegState.interfaceOff();
@@ -170,7 +169,7 @@ public class Threeg extends PowerComponent {
       return result;
     }
 
-    if(oper == null) {
+    if (oper == null) {
       oper = telephonyManager.getNetworkOperatorName();
       dchFachDelay = phoneConstants.threegDchFachDelay(oper);
       fachIdleDelay = phoneConstants.threegFachIdleDelay(oper);
@@ -182,76 +181,70 @@ public class Threeg extends PowerComponent {
     long receivePackets = readLongFromFile(readPacketsFile);
     long transmitBytes = readLongFromFile(transBytesFile);
     long receiveBytes = readLongFromFile(readBytesFile);
-    if(transmitBytes == -1 || receiveBytes == -1) {
+    if (transmitBytes == -1 || receiveBytes == -1) {
       /* Couldn't read interface data files. */
       Log.w(TAG, "Failed to read packet and byte counts from wifi interface");
       return result;
     }
 
-    if(threegState.isInitialized()) {
-      threegState.updateState(transmitPackets, receivePackets,
-                              transmitBytes, receiveBytes,
-                              dchFachDelay, fachIdleDelay,
-                              uplinkQueueSize, downlinkQueueSize);
+    if (threegState.isInitialized()) {
+      threegState.updateState(transmitPackets, receivePackets, transmitBytes, receiveBytes, dchFachDelay,
+          fachIdleDelay, uplinkQueueSize, downlinkQueueSize);
       ThreegData data = ThreegData.obtain();
-      data.init(threegState.getPackets(), threegState.getUplinkBytes(),
-                threegState.getDownlinkBytes(), threegState.getPowerState(),
-                oper);
+      data.init(threegState.getPackets(), threegState.getUplinkBytes(), threegState.getDownlinkBytes(),
+          threegState.getPowerState(), oper);
       result.setPowerData(data);
     } else {
-      threegState.updateState(transmitPackets, receivePackets,
-                              transmitBytes, receiveBytes,
-                              dchFachDelay, fachIdleDelay,
-                              uplinkQueueSize, downlinkQueueSize);
+      threegState.updateState(transmitPackets, receivePackets, transmitBytes, receiveBytes, dchFachDelay,
+          fachIdleDelay, uplinkQueueSize, downlinkQueueSize);
     }
 
     lastUids = sysInfo.getUids(lastUids);
-    if(lastUids != null) for(int uid : lastUids) {
-      if(uid == -1) {
-        continue;
-      }
-      try {
-        ThreegStateKeeper uidState = uidStates.get(uid);
-        if(uidState == null) {
-          uidState = new ThreegStateKeeper();
-          uidStates.put(uid, uidState);
-        }
-
-        if(!uidState.isStale()) {
-          /* We use a huerstic here so that we don't poll for uids that haven't
-           * had much activity recently.
-           */
+    if (lastUids != null)
+      for (int uid : lastUids) {
+        if (uid == -1) {
           continue;
         }
-          
-        /* These read operations are the expensive part of polling. */
-        receiveBytes = readLongFromFile("/proc/uid_stat/" + uid + "/tcp_rcv");
-        transmitBytes = readLongFromFile("/proc/uid_stat/" + uid + "/tcp_snd");
-
-        if(receiveBytes == -1 || transmitBytes == -1) {
-          Log.w(TAG, "Failed to read uid read/write byte counts");
-        } else if(uidState.isInitialized()) {
-          uidState.updateState(-1, -1, transmitBytes, receiveBytes,
-                               dchFachDelay, fachIdleDelay,
-                               uplinkQueueSize, downlinkQueueSize);
-
-          if(uidState.getUplinkBytes() + uidState.getDownlinkBytes() != 0 ||
-             uidState.getPowerState() != POWER_STATE_IDLE) {
-            ThreegData uidData = ThreegData.obtain();
-            uidData.init(uidState.getPackets(),
-                         uidState.getUplinkBytes(), uidState.getDownlinkBytes(),
-                         uidState.getPowerState(), oper);
-            result.addUidPowerData(uid, uidData);
+        try {
+          ThreegStateKeeper uidState = uidStates.get(uid);
+          if (uidState == null) {
+            uidState = new ThreegStateKeeper();
+            uidStates.put(uid, uidState);
           }
-        } else {
-          uidState.updateState(-1, -1, transmitBytes, receiveBytes,
-                               dchFachDelay, fachIdleDelay,
-                               uplinkQueueSize, downlinkQueueSize);
+
+          if (!uidState.isStale()) {
+            /*
+             * We use a huerstic here so that we don't poll for uids that
+             * haven't had much activity recently.
+             */
+            continue;
+          }
+
+          /* These read operations are the expensive part of polling. */
+          receiveBytes = readLongFromFile("/proc/uid_stat/" + uid + "/tcp_rcv");
+          transmitBytes = readLongFromFile("/proc/uid_stat/" + uid + "/tcp_snd");
+
+          if (receiveBytes == -1 || transmitBytes == -1) {
+            Log.w(TAG, "Failed to read uid read/write byte counts");
+          } else if (uidState.isInitialized()) {
+            uidState.updateState(-1, -1, transmitBytes, receiveBytes, dchFachDelay, fachIdleDelay, uplinkQueueSize,
+                downlinkQueueSize);
+
+            if (uidState.getUplinkBytes() + uidState.getDownlinkBytes() != 0
+                || uidState.getPowerState() != POWER_STATE_IDLE) {
+              ThreegData uidData = ThreegData.obtain();
+              uidData.init(uidState.getPackets(), uidState.getUplinkBytes(), uidState.getDownlinkBytes(),
+                  uidState.getPowerState(), oper);
+              result.addUidPowerData(uid, uidData);
+            }
+          } else {
+            uidState.updateState(-1, -1, transmitBytes, receiveBytes, dchFachDelay, fachIdleDelay, uplinkQueueSize,
+                downlinkQueueSize);
+          }
+        } catch (NumberFormatException e) {
+          Log.w(TAG, "Non-uid files in /proc/uid_stat");
         }
-      } catch(NumberFormatException e) {
-        Log.w(TAG, "Non-uid files in /proc/uid_stat");
       }
-    }
 
     return result;
   }
@@ -289,15 +282,12 @@ public class Threeg extends PowerComponent {
       return lastTime != -1;
     }
 
-    public void updateState(long transmitPackets, long receivePackets,
-                            long transmitBytes, long receiveBytes,
-                            int dchFachDelay, int fachIdleDelay,
-                            int uplinkQueueSize, int downlinkQueueSize) {
+    public void updateState(long transmitPackets, long receivePackets, long transmitBytes, long receiveBytes,
+        int dchFachDelay, int fachIdleDelay, int uplinkQueueSize, int downlinkQueueSize) {
       long curTime = SystemClock.elapsedRealtime();
-      if(lastTime != -1 && curTime > lastTime) {
+      if (lastTime != -1 && curTime > lastTime) {
         double deltaTime = curTime - lastTime;
-        deltaPackets = transmitPackets + receivePackets -
-                       lastTransmitPackets - lastReceivePackets;
+        deltaPackets = transmitPackets + receivePackets - lastTransmitPackets - lastReceivePackets;
         deltaUplinkBytes = transmitBytes - lastTransmitBytes;
         deltaDownlinkBytes = receiveBytes - lastReceiveBytes;
         boolean inactive = deltaUplinkBytes == 0 && deltaDownlinkBytes == 0;
@@ -305,44 +295,42 @@ public class Threeg extends PowerComponent {
 
         // TODO: make this always work.
         int timeMult = 1;
-        if(1000 % PowerEstimator.ITERATION_INTERVAL != 0) {
-          Log.w(TAG,
-            "Cannot handle iteration intervals that are a factor of 1 second");
+        if (1000 % PowerEstimator.ITERATION_INTERVAL != 0) {
+          Log.w(TAG, "Cannot handle iteration intervals that are a factor of 1 second");
         } else {
           timeMult = 1000 / PowerEstimator.ITERATION_INTERVAL;
         }
 
-        switch(powerState) {
-          case POWER_STATE_IDLE:
-            if(!inactive) {
+        switch (powerState) {
+        case POWER_STATE_IDLE:
+          if (!inactive) {
+            powerState = POWER_STATE_FACH;
+          }
+          break;
+        case POWER_STATE_FACH:
+          if (inactive) {
+            stateTime++;
+            if (stateTime >= fachIdleDelay * timeMult) {
+              stateTime = 0;
+              powerState = POWER_STATE_IDLE;
+            }
+          } else {
+            stateTime = 0;
+            if (deltaUplinkBytes > 0 || deltaDownlinkBytes > 0) {
+              powerState = POWER_STATE_DCH;
+            }
+          }
+          break;
+        default: // case POWER_STATE_DCH:
+          if (inactive) {
+            stateTime++;
+            if (stateTime >= dchFachDelay * timeMult) {
+              stateTime = 0;
               powerState = POWER_STATE_FACH;
             }
-            break;
-          case POWER_STATE_FACH:
-            if(inactive) {
-              stateTime++;
-              if(stateTime >= fachIdleDelay * timeMult) {
-                stateTime = 0;
-                powerState = POWER_STATE_IDLE;
-              }
-            } else {
-              stateTime = 0;
-              if(deltaUplinkBytes > 0 ||
-                 deltaDownlinkBytes > 0) {
-                powerState = POWER_STATE_DCH;
-              }
-            }
-            break;
-          default: // case POWER_STATE_DCH:
-            if(inactive) {
-              stateTime++;
-              if(stateTime >= dchFachDelay * timeMult) {
-                stateTime = 0;
-                powerState = POWER_STATE_FACH;
-              }
-            } else {
-              stateTime = 0;
-            }
+          } else {
+            stateTime = 0;
+          }
         }
       }
       lastTime = curTime;
@@ -368,15 +356,16 @@ public class Threeg extends PowerComponent {
       return deltaDownlinkBytes;
     }
 
-    /* The idea here is that we don't want to have to read uid information
-     * every single iteration for each uid as it just takes too long.  So here
-     * we are designing a hueristic that helps us avoid polling for too many
-     * uids.
+    /*
+     * The idea here is that we don't want to have to read uid information every
+     * single iteration for each uid as it just takes too long. So here we are
+     * designing a hueristic that helps us avoid polling for too many uids.
      */
     public boolean isStale() {
-      if(powerState != POWER_STATE_IDLE) return true;
+      if (powerState != POWER_STATE_IDLE)
+        return true;
       long curTime = SystemClock.elapsedRealtime();
-      return curTime - lastTime > (long)Math.min(10000, inactiveTime);
+      return curTime - lastTime > (long) Math.min(10000, inactiveTime);
     }
   }
 

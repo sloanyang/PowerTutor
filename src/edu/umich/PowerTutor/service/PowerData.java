@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.service;
 
@@ -37,12 +37,13 @@ public abstract class PowerData {
     return cachedPower;
   }
 
-  /* To be called when the PowerData object is no longer in use so that it can
+  /*
+   * To be called when the PowerData object is no longer in use so that it can
    * be used again in the next iteration if it chooses to be.
    */
-  public void recycle() {}
+  public void recycle() {
+  }
 
   /* Simply writes out log information to the passed stream. */
-  public abstract void writeLogDataInfo(OutputStreamWriter out)
-      throws IOException;
+  public abstract void writeLogDataInfo(OutputStreamWriter out) throws IOException;
 }

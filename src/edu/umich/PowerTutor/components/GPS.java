@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.components;
 
@@ -50,14 +50,16 @@ public class GPS extends PowerComponent {
 
     public static GpsData obtain() {
       GpsData result = recycler.obtain();
-      if(result != null) return result;
+      if (result != null)
+        return result;
       return new GpsData();
     }
 
     /* The time in seconds since the last iteration of data. */
     public double[] stateTimes;
-    /* The number of satellites.  This number is only available while the GPS is
-     * in the on state.  Otherwise it is 0.
+    /*
+     * The number of satellites. This number is only available while the GPS is
+     * in the on state. Otherwise it is 0.
      */
     public int satellites;
 
@@ -66,7 +68,7 @@ public class GPS extends PowerComponent {
     }
 
     public void init(double[] stateTimes, int satellites) {
-      for(int i = 0; i < GPS.POWER_STATES; i++) {
+      for (int i = 0; i < GPS.POWER_STATES; i++) {
         this.stateTimes[i] = stateTimes[i];
       }
       this.satellites = satellites;
@@ -81,7 +83,7 @@ public class GPS extends PowerComponent {
     public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("GPS-state-times");
-      for(int i = 0; i < GPS.POWER_STATES; i++) {
+      for (int i = 0; i < GPS.POWER_STATES; i++) {
         res.append(" ").append(stateTimes[i]);
       }
       res.append("\nGPS-sattelites ").append(satellites).append("\n");
@@ -93,7 +95,7 @@ public class GPS extends PowerComponent {
   public static final int POWER_STATE_OFF = 0;
   public static final int POWER_STATE_SLEEP = 1;
   public static final int POWER_STATE_ON = 2;
-  public static final String[] POWER_STATE_NAMES = {"OFF", "SLEEP", "ON"};
+  public static final String[] POWER_STATE_NAMES = { "OFF", "SLEEP", "ON" };
 
   private static final String TAG = "GPS";
 
@@ -127,82 +129,85 @@ public class GPS extends PowerComponent {
   public GPS(Context context, PhoneConstants constants) {
     this.context = context;
     uidStates = new SparseArray<GpsStateKeeper>();
-    sleepTime = (long)Math.round(1000.0 * constants.gpsSleepTime());
+    sleepTime = (long) Math.round(1000.0 * constants.gpsSleepTime());
 
     hasUidInfo = NotificationService.available();
 
     int hookMethod = 0;
     final File gpsStatusFile = new File(HOOK_GPS_STATUS_FILE);
-    if(gpsStatusFile.exists()) {
-      /* The libgps hack appears to be available.  Let's use this to gather
-       * our status updates from the GPS.
+    if (gpsStatusFile.exists()) {
+      /*
+       * The libgps hack appears to be available. Let's use this to gather our
+       * status updates from the GPS.
        */
       hookMethod = HOOK_LIBGPS;
     } else {
-      /* We can always use the status listener hook and perhaps the notification
-       * hook if we are running eclaire or higher and the notification hook
-       * is installed.  We can only do this on eclaire or higher because it
-       * wasn't until eclaire that they fixed a bug where they didn't maintain
-       * a wakelock while the gps engine was on.
+      /*
+       * We can always use the status listener hook and perhaps the notification
+       * hook if we are running eclaire or higher and the notification hook is
+       * installed. We can only do this on eclaire or higher because it wasn't
+       * until eclaire that they fixed a bug where they didn't maintain a
+       * wakelock while the gps engine was on.
        */
       hookMethod = HOOK_GPS_STATUS_LISTENER;
       try {
-        if(NotificationService.available() &&
-           Integer.parseInt(Build.VERSION.SDK) >= 5 /* eclaire or higher */) {
+        if (NotificationService.available() && Integer.parseInt(Build.VERSION.SDK) >= 5 /*
+                                                                                         * eclaire
+                                                                                         * or
+                                                                                         * higher
+                                                                                         */) {
           hookMethod |= HOOK_NOTIFICATIONS;
         }
-      } catch(NumberFormatException e) {
+      } catch (NumberFormatException e) {
         Log.w(TAG, "Could not parse sdk version: " + Build.VERSION.SDK);
       }
     }
-    /* If we don't have a way of getting the off<->sleep transitions through
+    /*
+     * If we don't have a way of getting the off<->sleep transitions through
      * notifications let's just use a timer and simulat the state of the gps
      * instead.
      */
-    if((hookMethod & (HOOK_LIBGPS | HOOK_NOTIFICATIONS)) == 0) {
+    if ((hookMethod & (HOOK_LIBGPS | HOOK_NOTIFICATIONS)) == 0) {
       hookMethod |= HOOK_TIMER;
     }
 
     /* Create the object that keeps track of the physical GPS state. */
     gpsState = new GpsStateKeeper(hookMethod, sleepTime);
 
-    /* No matter what we are going to register a GpsStatus listener so that we
-     * can get the satellite count.  Also if anything goes wrong with the
-     * libgps hook we will revert to using this.
+    /*
+     * No matter what we are going to register a GpsStatus listener so that we
+     * can get the satellite count. Also if anything goes wrong with the libgps
+     * hook we will revert to using this.
      */
-    locationManager = (LocationManager)
-                      context.getSystemService(Context.LOCATION_SERVICE);
+    locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
     gpsListener = new GpsStatus.Listener() {
-      public void onGpsStatusChanged(int event){
-        if(event == GpsStatus.GPS_EVENT_STARTED) {
-          gpsState.updateEvent(GPS_STATUS_SESSION_BEGIN,
-                               HOOK_GPS_STATUS_LISTENER);
-        } else if(event == GpsStatus.GPS_EVENT_STOPPED) {
-          gpsState.updateEvent(GPS_STATUS_SESSION_END,
-                               HOOK_GPS_STATUS_LISTENER);
+      public void onGpsStatusChanged(int event) {
+        if (event == GpsStatus.GPS_EVENT_STARTED) {
+          gpsState.updateEvent(GPS_STATUS_SESSION_BEGIN, HOOK_GPS_STATUS_LISTENER);
+        } else if (event == GpsStatus.GPS_EVENT_STOPPED) {
+          gpsState.updateEvent(GPS_STATUS_SESSION_END, HOOK_GPS_STATUS_LISTENER);
         }
-        synchronized(GPS.this) {
+        synchronized (GPS.this) {
           lastStatus = locationManager.getGpsStatus(lastStatus);
         }
       }
     };
     locationManager.addGpsStatusListener(gpsListener);
 
-    /* No matter what we register a notification service listener as well so
+    /*
+     * No matter what we register a notification service listener as well so
      * that we can get uid information if it's available.
      */
-    if(hasUidInfo) {
+    if (hasUidInfo) {
       notificationReceiver = new NotificationService.DefaultReceiver() {
         public void noteStartWakelock(int uid, String name, int type) {
-          if(uid == SystemInfo.AID_SYSTEM &&
-             "GpsLocationProvider".equals(name)) {
+          if (uid == SystemInfo.AID_SYSTEM && "GpsLocationProvider".equals(name)) {
             gpsState.updateEvent(GPS_STATUS_ENGINE_ON, HOOK_NOTIFICATIONS);
           }
         }
 
         public void noteStopWakelock(int uid, String name, int type) {
-          if(uid == SystemInfo.AID_SYSTEM &&
-             "GpsLocationProvider".equals(name)) {
+          if (uid == SystemInfo.AID_SYSTEM && "GpsLocationProvider".equals(name)) {
             gpsState.updateEvent(GPS_STATUS_ENGINE_OFF, HOOK_NOTIFICATIONS);
           }
         }
@@ -218,25 +223,23 @@ public class GPS extends PowerComponent {
       NotificationService.addHook(notificationReceiver);
     }
 
-    if(gpsStatusFile.exists()) {
-      /* Start a thread to read from the named pipe and feed us status updates.
+    if (gpsStatusFile.exists()) {
+      /*
+       * Start a thread to read from the named pipe and feed us status updates.
        */
       statusThread = new Thread() {
         public void run() {
           try {
-            java.io.FileInputStream fin =
-                new java.io.FileInputStream(gpsStatusFile);
-            for(int event = fin.read(); !interrupted() && event != -1;
-                event = fin.read()) {
+            java.io.FileInputStream fin = new java.io.FileInputStream(gpsStatusFile);
+            for (int event = fin.read(); !interrupted() && event != -1; event = fin.read()) {
               gpsState.updateEvent(event, HOOK_LIBGPS);
             }
-          } catch(IOException e) {
+          } catch (IOException e) {
             e.printStackTrace();
           }
-          if(!interrupted()) {
+          if (!interrupted()) {
             // TODO: Have this instead just switch to use different hooks.
-            Log.w(TAG, "GPS status thread exited. " +
-                  "No longer gathering gps data.");
+            Log.w(TAG, "GPS status thread exited. " + "No longer gathering gps data.");
           }
         }
       };
@@ -245,11 +248,10 @@ public class GPS extends PowerComponent {
   }
 
   private void updateUidEvent(int uid, int event, int source) {
-    synchronized(uidStates) {
+    synchronized (uidStates) {
       GpsStateKeeper state = uidStates.get(uid);
-      if(state == null) {
-        state = new GpsStateKeeper(HOOK_NOTIFICATIONS | HOOK_TIMER, sleepTime,
-                                   lastTime);
+      if (state == null) {
+        state = new GpsStateKeeper(HOOK_NOTIFICATIONS | HOOK_TIMER, sleepTime, lastTime);
         uidStates.put(uid, state);
       }
       state.updateEvent(event, source);
@@ -258,13 +260,13 @@ public class GPS extends PowerComponent {
 
   @Override
   protected void onExit() {
-    if(gpsListener != null) {
+    if (gpsListener != null) {
       locationManager.removeGpsStatusListener(gpsListener);
     }
-    if(statusThread != null) {
+    if (statusThread != null) {
       statusThread.interrupt();
     }
-    if(notificationReceiver != null) {
+    if (notificationReceiver != null) {
       NotificationService.removeHook(notificationReceiver);
     }
     super.onExit();
@@ -276,9 +278,9 @@ public class GPS extends PowerComponent {
 
     /* Get the number of satellites that were available in the last update. */
     int satellites = 0;
-    synchronized(this) {
-      if(lastStatus != null) {
-        for(GpsSatellite satellite : lastStatus.getSatellites()) {
+    synchronized (this) {
+      if (lastStatus != null) {
+        for (GpsSatellite satellite : lastStatus.getSatellites()) {
           satellites++;
         }
       }
@@ -286,7 +288,7 @@ public class GPS extends PowerComponent {
 
     /* Get the power data for the physical gps device. */
     GpsData power = GpsData.obtain();
-    synchronized(gpsState) {
+    synchronized (gpsState) {
       double[] stateTimes = gpsState.getStateTimesLocked();
       int curState = gpsState.getCurrentStateLocked();
       power.init(stateTimes, curState == POWER_STATE_ON ? satellites : 0);
@@ -295,27 +297,28 @@ public class GPS extends PowerComponent {
     result.setPowerData(power);
 
     /* Get the power data for each uid if we have information on it. */
-    if(hasUidInfo) synchronized(uidStates) {
-      lastTime = beginTime + iterationInterval * iteration;
-      for(int i = 0; i < uidStates.size(); i++) {
-        int uid = uidStates.keyAt(i);
-        GpsStateKeeper state = uidStates.valueAt(i);
+    if (hasUidInfo)
+      synchronized (uidStates) {
+        lastTime = beginTime + iterationInterval * iteration;
+        for (int i = 0; i < uidStates.size(); i++) {
+          int uid = uidStates.keyAt(i);
+          GpsStateKeeper state = uidStates.valueAt(i);
 
-        double[] stateTimes = state.getStateTimesLocked();
-        int curState = state.getCurrentStateLocked();
-        GpsData uidPower = GpsData.obtain();
-        uidPower.init(stateTimes, curState == POWER_STATE_ON ? satellites : 0);
-        state.resetTimesLocked();
+          double[] stateTimes = state.getStateTimesLocked();
+          int curState = state.getCurrentStateLocked();
+          GpsData uidPower = GpsData.obtain();
+          uidPower.init(stateTimes, curState == POWER_STATE_ON ? satellites : 0);
+          state.resetTimesLocked();
 
-        result.addUidPowerData(uid, uidPower);
+          result.addUidPowerData(uid, uidPower);
 
-        /* Remove state information for uids no longer using the gps. */
-        if(curState == POWER_STATE_OFF) {
-          uidStates.remove(uid);
-          i--;
+          /* Remove state information for uids no longer using the gps. */
+          if (curState == POWER_STATE_OFF) {
+            uidStates.remove(uid);
+            i--;
+          }
         }
       }
-    }
 
     return result;
   }
@@ -325,7 +328,8 @@ public class GPS extends PowerComponent {
     return hasUidInfo;
   }
 
-  /* This class is used to maintain the actual GPS state in addition to
+  /*
+   * This class is used to maintain the actual GPS state in addition to
    * simulating individual uid states.
    */
   private static class GpsStateKeeper {
@@ -333,13 +337,15 @@ public class GPS extends PowerComponent {
     private long lastTime;
     private int curState;
 
-    /* The sum of whatever hook sources are valid.  See the HOOK_ constants. */
+    /* The sum of whatever hook sources are valid. See the HOOK_ constants. */
     private int hookMask;
-    /* The time that the GPS hardware should turn off.  This is only used
-     * if HOOK_TIMER is in the hookMask.
+    /*
+     * The time that the GPS hardware should turn off. This is only used if
+     * HOOK_TIMER is in the hookMask.
      */
     private long offTime;
-    /* Gives the time that the GPS stays in the sleep state after the session
+    /*
+     * Gives the time that the GPS stays in the sleep state after the session
      * has ended in milliseconds.
      */
     private long sleepTime;
@@ -350,8 +356,10 @@ public class GPS extends PowerComponent {
 
     public GpsStateKeeper(int hookMask, long sleepTime, long lastTime) {
       this.hookMask = hookMask;
-      this.sleepTime = sleepTime; /* This isn't required if HOOK_TIEMR is not
-                                   * set. */
+      this.sleepTime = sleepTime; /*
+                                   * This isn't required if HOOK_TIEMR is not
+                                   * set.
+                                   */
       this.lastTime = lastTime;
       stateTimes = new double[POWER_STATES];
       curState = POWER_STATE_OFF;
@@ -364,11 +372,12 @@ public class GPS extends PowerComponent {
 
       /* Let's normalize the times so that power measurements are consistent. */
       double total = 0;
-      for(int i = 0; i < POWER_STATES; i++) {
+      for (int i = 0; i < POWER_STATES; i++) {
         total += stateTimes[i];
       }
-      if(total == 0) total = 1;
-      for(int i = 0; i < POWER_STATES; i++) {
+      if (total == 0)
+        total = 1;
+      for (int i = 0; i < POWER_STATES; i++) {
         stateTimes[i] /= total;
       }
 
@@ -376,7 +385,7 @@ public class GPS extends PowerComponent {
     }
 
     public void resetTimesLocked() {
-      for(int i = 0; i < POWER_STATES; i++) {
+      for (int i = 0; i < POWER_STATES; i++) {
         stateTimes[i] = 0;
       }
     }
@@ -391,8 +400,7 @@ public class GPS extends PowerComponent {
       long curTime = SystemClock.elapsedRealtime();
 
       /* Check if the GPS has gone to sleep as a result of a timer. */
-      if((hookMask & HOOK_TIMER) != 0 && offTime != -1 &&
-         offTime < curTime) {
+      if ((hookMask & HOOK_TIMER) != 0 && offTime != -1 && offTime < curTime) {
         stateTimes[curState] += (offTime - lastTime) / 1000.0;
         curState = POWER_STATE_OFF;
         offTime = -1;
@@ -402,42 +410,42 @@ public class GPS extends PowerComponent {
       stateTimes[curState] += (curTime - lastTime) / 1000.0;
       lastTime = curTime;
     }
-    
-    /* When a hook source gets an event it should report it to updateEvent.
-     * The only exception is HOOK_TIMER which is handled within this class
-     * itself.
+
+    /*
+     * When a hook source gets an event it should report it to updateEvent. The
+     * only exception is HOOK_TIMER which is handled within this class itself.
      */
     public void updateEvent(int event, int source) {
-      synchronized(this) {
-        if((hookMask & source) == 0) {
+      synchronized (this) {
+        if ((hookMask & source) == 0) {
           /* We are not using this hook source, ignore. */
           return;
         }
 
         updateTimesLocked();
         int oldState = curState;
-        switch(event) {
-          case GPS_STATUS_SESSION_BEGIN:
-            curState = POWER_STATE_ON;
-            break;
-          case GPS_STATUS_SESSION_END:
-            if(curState == POWER_STATE_ON) {
-              curState = POWER_STATE_SLEEP;
-            }
-            break;
-          case GPS_STATUS_ENGINE_ON:
-            if(curState == POWER_STATE_OFF) {
-              curState = POWER_STATE_SLEEP;
-            }
-            break;
-          case GPS_STATUS_ENGINE_OFF:
-            curState = POWER_STATE_OFF;
-            break;
-          default:
-            Log.w(TAG, "Unknown GPS event captured");
+        switch (event) {
+        case GPS_STATUS_SESSION_BEGIN:
+          curState = POWER_STATE_ON;
+          break;
+        case GPS_STATUS_SESSION_END:
+          if (curState == POWER_STATE_ON) {
+            curState = POWER_STATE_SLEEP;
+          }
+          break;
+        case GPS_STATUS_ENGINE_ON:
+          if (curState == POWER_STATE_OFF) {
+            curState = POWER_STATE_SLEEP;
+          }
+          break;
+        case GPS_STATUS_ENGINE_OFF:
+          curState = POWER_STATE_OFF;
+          break;
+        default:
+          Log.w(TAG, "Unknown GPS event captured");
         }
-        if(curState != oldState) {
-          if(oldState == POWER_STATE_ON && curState == POWER_STATE_SLEEP) {
+        if (curState != oldState) {
+          if (oldState == POWER_STATE_ON && curState == POWER_STATE_SLEEP) {
             offTime = SystemClock.elapsedRealtime() + sleepTime;
           } else {
             /* Any other state transition should reset the off timer. */
@@ -453,4 +461,3 @@ public class GPS extends PowerComponent {
     return "GPS";
   }
 }
-

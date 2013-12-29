@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.util;
 
@@ -30,10 +30,10 @@ public class NativeLoader {
     try {
       System.loadLibrary("bindings");
       loadOk = true;
-    } catch(SecurityException e) {
+    } catch (SecurityException e) {
       Log.w(TAG, "Failed to load jni dll, will fall back on pure java");
       loadOk = false;
-    } catch(UnsatisfiedLinkError e) {
+    } catch (UnsatisfiedLinkError e) {
       Log.w(TAG, "Failed to load jni dll, will fall back on pure java");
       loadOk = false;
     }

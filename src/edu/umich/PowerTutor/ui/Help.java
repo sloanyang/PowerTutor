@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.ui;
 
@@ -28,20 +28,19 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-/**This function implements the UI for help view*/
+/** This function implements the UI for help view */
 public class Help extends Activity {
   private static final String powerTutorUrl = "http://powertutor.org";
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState); 
+    super.onCreate(savedInstanceState);
     setContentView(R.layout.help);
-    TextView s2 = (TextView)this.findViewById(R.id.S2);
+    TextView s2 = (TextView) this.findViewById(R.id.S2);
 
     s2.setOnClickListener(new TextView.OnClickListener() {
       public void onClick(View v) {
-        Intent myIntent = new Intent(Intent.ACTION_VIEW,
-                                     Uri.parse(powerTutorUrl));
+        Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(powerTutorUrl));
         startActivity(myIntent);
       }
     });

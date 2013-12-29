@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.components;
 
@@ -25,32 +25,37 @@ import android.os.SystemClock;
 import android.util.Log;
 
 public abstract class PowerComponent extends Thread {
-	private final String TAG = "PowerComponent";
+  private final String TAG = "PowerComponent";
 
-  /* Extending classes need to override the calculateIteration function.  It
-   * should calculate the data point for the given component in a timely
-   * manner (under 1 second, longer times will cause data to be missed).
-   * The iteration parameter can be ignored in most cases.
+  /*
+   * Extending classes need to override the calculateIteration function. It
+   * should calculate the data point for the given component in a timely manner
+   * (under 1 second, longer times will cause data to be missed). The iteration
+   * parameter can be ignored in most cases.
    */
   protected abstract IterationData calculateIteration(long iteration);
 
-  /* Extending classes should provide a recognizable name for this component
-   * to be used when writing to logs.
+  /*
+   * Extending classes should provide a recognizable name for this component to
+   * be used when writing to logs.
    */
   public abstract String getComponentName();
 
-  /* Returns true if this component collects usage information per uid.
+  /*
+   * Returns true if this component collects usage information per uid.
    */
   public boolean hasUidInformation() {
     return false;
   }
 
-  /* Called when the thread running this interface is asked to exit.
+  /*
+   * Called when the thread running this interface is asked to exit.
    */
   protected void onExit() {
   }
 
-  /* In general we should only need to buffer two data elements.
+  /*
+   * In general we should only need to buffer two data elements.
    */
   private IterationData data1;
   private IterationData data2;
@@ -64,7 +69,8 @@ public abstract class PowerComponent extends Thread {
     setDaemon(true);
   }
 
-  /* This is called once at the begginning of the daemon loop.
+  /*
+   * This is called once at the begginning of the daemon loop.
    */
   public void init(long beginTime, long iterationInterval) {
     this.beginTime = beginTime;
@@ -75,16 +81,16 @@ public abstract class PowerComponent extends Thread {
 
   /* Runs the daemon loop that collects data for this component. */
   public void run() {
-    android.os.Process.setThreadPriority(
-        android.os.Process.THREAD_PRIORITY_MORE_FAVORABLE);
-    for(long iter = 0; !Thread.interrupted(); ) {
-      /* Hand off to the client class to actually calculate the information
-       * we want for this component.
+    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_MORE_FAVORABLE);
+    for (long iter = 0; !Thread.interrupted();) {
+      /*
+       * Hand off to the client class to actually calculate the information we
+       * want for this component.
        */
       IterationData data = calculateIteration(iter);
-      if(data != null) {
-        synchronized(this) {
-          if(iteration1 < iteration2) {
+      if (data != null) {
+        synchronized (this) {
+          if (iteration1 < iteration2) {
             iteration1 = iter;
             data1 = data;
           } else {
@@ -93,48 +99,48 @@ public abstract class PowerComponent extends Thread {
           }
         }
       }
-      if(interrupted()) {
+      if (interrupted()) {
         break;
       }
 
       long curTime = SystemClock.elapsedRealtime();
       /* Compute the next iteration that we can make the start of. */
       long oldIter = iter;
-      iter = (long)Math.max(iter + 1,
-                            1 + (curTime - beginTime) / iterationInterval);
-      if(oldIter + 1 != iter) {
-        Log.w(TAG, "[" + getComponentName() + "] Had to skip from iteration " +
-                   oldIter + " to " + iter);
+      iter = (long) Math.max(iter + 1, 1 + (curTime - beginTime) / iterationInterval);
+      if (oldIter + 1 != iter) {
+        Log.w(TAG, "[" + getComponentName() + "] Had to skip from iteration " + oldIter + " to " + iter);
       }
       /* Sleep until the next iteration completes. */
       try {
-			  sleep(beginTime + iter * iterationInterval - curTime);
-      } catch(InterruptedException e) {
+        sleep(beginTime + iter * iterationInterval - curTime);
+      } catch (InterruptedException e) {
         break;
       }
     }
     onExit();
   }
 
-  /* Returns the data point for the given iteration.  This method will be called
-     with a strictly increasing iteration parameter.
+  /*
+   * Returns the data point for the given iteration. This method will be called
+   * with a strictly increasing iteration parameter.
    */
   public IterationData getData(long iteration) {
-    synchronized(this) {
+    synchronized (this) {
       IterationData ret = null;
-      if(iteration == iteration1) ret = data1;
-      if(iteration == iteration2) ret = data2;
-      if(iteration1 <= iteration) {
+      if (iteration == iteration1)
+        ret = data1;
+      if (iteration == iteration2)
+        ret = data2;
+      if (iteration1 <= iteration) {
         data1 = null;
         iteration1 = -1;
       }
-      if(iteration2 <= iteration) {
+      if (iteration2 <= iteration) {
         data2 = null;
         iteration2 = -1;
       }
-      if(ret == null) {
-        Log.w(TAG, "[" + getComponentName() + "] Could not find data for " +
-                   "requested iteration");
+      if (ret == null) {
+        Log.w(TAG, "[" + getComponentName() + "] Could not find data for " + "requested iteration");
       }
       return ret;
     }

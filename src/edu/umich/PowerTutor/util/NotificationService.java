@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.util;
 
@@ -37,48 +37,50 @@ public class NotificationService {
 
   /* We haven't tried to install the hook yet. */
   private static final int STATE_INIT = 0;
-  /* The hook was installed successfully and we should be receiving power
+  /*
+   * The hook was installed successfully and we should be receiving power
    * related notifications from the battery service.
    */
   private static final int STATE_HOOK_INSTALLED = 1;
-  /* The hook failed to install.  This should be the case for most phones as a
+  /*
+   * The hook failed to install. This should be the case for most phones as a
    * hack is required to get this to work.
    */
   private static final int STATE_HOOK_FAILED = 2;
 
   private static int hookState = STATE_INIT;
   private static Binder notifier = new NotificationForwarder();
-  private static Vector<PowerNotifications> hooks =
-      new Vector<PowerNotifications>();
+  private static Vector<PowerNotifications> hooks = new Vector<PowerNotifications>();
 
   private static Method methodGetService;
-  
+
   static {
     try {
       Class classServiceManager = Class.forName("android.os.ServiceManager");
       methodGetService = classServiceManager.getMethod("getService", String.class);
-    } catch(NoSuchMethodException e) {
+    } catch (NoSuchMethodException e) {
       Log.w(TAG, "Could not find method gerService");
-    } catch(ClassNotFoundException e) {
+    } catch (ClassNotFoundException e) {
       Log.w(TAG, "Could not find class android.os.ServiceManager");
     }
   }
-  
+
   private static IBinder getBatteryService() {
-    if(methodGetService == null) return null;
+    if (methodGetService == null)
+      return null;
     try {
-      return (IBinder)methodGetService.invoke(null, "batteryhook");
-    } catch(InvocationTargetException e) {
+      return (IBinder) methodGetService.invoke(null, "batteryhook");
+    } catch (InvocationTargetException e) {
       Log.w(TAG, "Call to get service failed");
-    } catch(IllegalAccessException e) {
+    } catch (IllegalAccessException e) {
       Log.w(TAG, "Call to get service failed");
     }
     return null;
   }
-  
+
   public static boolean available() {
-    synchronized(hooks) {
-      if(hookState == STATE_INIT) {
+    synchronized (hooks) {
+      if (hookState == STATE_INIT) {
         return getBatteryService() != null;
       }
       return hookState == STATE_HOOK_INSTALLED;
@@ -86,13 +88,12 @@ public class NotificationService {
   }
 
   public static void addHook(PowerNotifications notif) {
-    synchronized(hooks) {
-      if(hookState == STATE_INIT) {
+    synchronized (hooks) {
+      if (hookState == STATE_INIT) {
         installHook();
       }
-      if(hookState != STATE_HOOK_INSTALLED) {
-        Log.w(TAG, "Attempted to add hook though no " +
-                   "notification service available");
+      if (hookState != STATE_HOOK_INSTALLED) {
+        Log.w(TAG, "Attempted to add hook though no " + "notification service available");
       } else {
         hooks.add(notif);
       }
@@ -100,7 +101,7 @@ public class NotificationService {
   }
 
   public static void removeHook(PowerNotifications notif) {
-    synchronized(hooks) {
+    synchronized (hooks) {
       hooks.remove(notif);
     }
   }
@@ -111,35 +112,34 @@ public class NotificationService {
     hookState = STATE_HOOK_FAILED;
     try {
       IBinder batteryHook = getBatteryService();
-      if(batteryHook == null) {
-        /* This should be the case on un-hacked phone.  Maybe one day
-         * phones will support this service or similar by default.
+      if (batteryHook == null) {
+        /*
+         * This should be the case on un-hacked phone. Maybe one day phones will
+         * support this service or similar by default.
          */
         Log.i(TAG, "No power notification hook service installed");
-      } else if(!batteryHook.transact(0, outBinder, null, 0)) {
+      } else if (!batteryHook.transact(0, outBinder, null, 0)) {
         Log.w(TAG, "Failed to register forwarder");
       } else {
         hookState = STATE_HOOK_INSTALLED;
       }
-    } catch(RemoteException e) {
+    } catch (RemoteException e) {
       Log.w(TAG, "Failed to register forwarder");
     }
     outBinder.recycle();
   }
 
-  /* Class responsible for forwarding power notifications to registered
-   * hooks.
+  /*
+   * Class responsible for forwarding power notifications to registered hooks.
    */
   private static class NotificationForwarder extends DefaultReceiver {
-    public boolean onTransact(int code, Parcel data,
-                              Parcel reply, int flags) throws RemoteException {
-      synchronized(hooks) {
-        for(Iterator<PowerNotifications> iter = hooks.iterator();
-            iter.hasNext(); ) {
+    public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
+      synchronized (hooks) {
+        for (Iterator<PowerNotifications> iter = hooks.iterator(); iter.hasNext();) {
           Parcel junk = Parcel.obtain();
           try {
             iter.next().asBinder().transact(code, data, junk, flags);
-          } catch(RemoteException e) {
+          } catch (RemoteException e) {
             iter.remove();
           }
           data.setDataPosition(0);
@@ -150,46 +150,118 @@ public class NotificationService {
     }
   }
 
-  /* If you only want to receive a subset of the notifications just extend this
+  /*
+   * If you only want to receive a subset of the notifications just extend this
    * class and override the methods you care about.
    */
   public static class DefaultReceiver extends PowerNotifications.Stub {
-    public void noteSystemMediaCall(int uid) {}
-    public void noteStartMedia(int uid, int id) {}
-    public void noteStopMedia(int uid, int id) {}
-    public void noteVideoSize(int uid, int id, int width, int height) {}
-    public void noteStartWakelock(int uid, String name, int type) {}
-    public void noteStopWakelock(int uid, String name, int type) {}
-    public void noteStartSensor(int uid, int sensor) {}
-    public void noteStopSensor(int uid, int sensor) {}
-    public void noteStartGps(int uid) {}
-    public void noteStopGps(int uid) {}
-    public void noteScreenOn() {}
-    public void noteScreenBrightness(int brightness) {}
-    public void noteScreenOff() {}
-    public void noteInputEvent() {}
-    public void noteUserActivity(int uid, int event) {}
-    public void notePhoneOn() {}
-    public void notePhoneOff() {}
-    public void notePhoneDataConnectionState(int dataType, boolean hasData) {}
-    public void noteWifiOn(int uid) {}
-    public void noteWifiOff(int uid) {}
-    public void noteWifiRunning() {}
-    public void noteWifiStopped() {}
-    public void noteBluetoothOn() {}
-    public void noteBluetoothOff() {}
-    public void noteFullWifiLockAcquired(int uid) {}
-    public void noteFullWifiLockReleased(int uid) {}
-    public void noteScanWifiLockAcquired(int uid) {}
-    public void noteScanWifiLockReleased(int uid) {}
-    public void noteWifiMulticastEnabled(int uid) {}
-    public void noteWifiMulticastDisabled(int uid) {}
-    public void setOnBattery(boolean onBattery, int level) {}
-    public void recordCurrentLevel(int level) {}
-    public void noteVideoOn(int uid) {}
-    public void noteVideoOff(int uid) {}
-    public void noteAudioOn(int uid) {}
-    public void noteAudioOff(int uid) {}
+    public void noteSystemMediaCall(int uid) {
+    }
+
+    public void noteStartMedia(int uid, int id) {
+    }
+
+    public void noteStopMedia(int uid, int id) {
+    }
+
+    public void noteVideoSize(int uid, int id, int width, int height) {
+    }
+
+    public void noteStartWakelock(int uid, String name, int type) {
+    }
+
+    public void noteStopWakelock(int uid, String name, int type) {
+    }
+
+    public void noteStartSensor(int uid, int sensor) {
+    }
+
+    public void noteStopSensor(int uid, int sensor) {
+    }
+
+    public void noteStartGps(int uid) {
+    }
+
+    public void noteStopGps(int uid) {
+    }
+
+    public void noteScreenOn() {
+    }
+
+    public void noteScreenBrightness(int brightness) {
+    }
+
+    public void noteScreenOff() {
+    }
+
+    public void noteInputEvent() {
+    }
+
+    public void noteUserActivity(int uid, int event) {
+    }
+
+    public void notePhoneOn() {
+    }
+
+    public void notePhoneOff() {
+    }
+
+    public void notePhoneDataConnectionState(int dataType, boolean hasData) {
+    }
+
+    public void noteWifiOn(int uid) {
+    }
+
+    public void noteWifiOff(int uid) {
+    }
+
+    public void noteWifiRunning() {
+    }
+
+    public void noteWifiStopped() {
+    }
+
+    public void noteBluetoothOn() {
+    }
+
+    public void noteBluetoothOff() {
+    }
+
+    public void noteFullWifiLockAcquired(int uid) {
+    }
+
+    public void noteFullWifiLockReleased(int uid) {
+    }
+
+    public void noteScanWifiLockAcquired(int uid) {
+    }
+
+    public void noteScanWifiLockReleased(int uid) {
+    }
+
+    public void noteWifiMulticastEnabled(int uid) {
+    }
+
+    public void noteWifiMulticastDisabled(int uid) {
+    }
+
+    public void setOnBattery(boolean onBattery, int level) {
+    }
+
+    public void recordCurrentLevel(int level) {
+    }
+
+    public void noteVideoOn(int uid) {
+    }
+
+    public void noteVideoOff(int uid) {
+    }
+
+    public void noteAudioOn(int uid) {
+    }
+
+    public void noteAudioOff(int uid) {
+    }
   }
 
   /* Useful for debugging purposes. */
@@ -207,28 +279,23 @@ public class NotificationService {
     }
 
     public void noteVideoSize(int uid, int id, int width, int height) {
-      System.out.println("Video size[uid=" + uid + ", id=" + id + 
-                         ", width=" + width + ", height=" + height + "]");
+      System.out.println("Video size[uid=" + uid + ", id=" + id + ", width=" + width + ", height=" + height + "]");
     }
 
     public void noteStartWakelock(int uid, String name, int type) {
-      System.out.println("Start wakelock[uid=" + uid + ", name=" + name +
-                         ", type=" + type + "]");
+      System.out.println("Start wakelock[uid=" + uid + ", name=" + name + ", type=" + type + "]");
     }
 
     public void noteStopWakelock(int uid, String name, int type) {
-      System.out.println("Stop wakelock[uid=" + uid + ", name=" + name +
-                         ", type=" + type + "]");
+      System.out.println("Stop wakelock[uid=" + uid + ", name=" + name + ", type=" + type + "]");
     }
 
     public void noteStartSensor(int uid, int sensor) {
-      System.out.println("noteStartSensor[uid=" + uid + ", sensor=" + sensor +
-                         "]");
+      System.out.println("noteStartSensor[uid=" + uid + ", sensor=" + sensor + "]");
     }
 
     public void noteStopSensor(int uid, int sensor) {
-      System.out.println("noteStopSensor[uid=" + uid + ", sensor=" + sensor +
-                         "]");
+      System.out.println("noteStopSensor[uid=" + uid + ", sensor=" + sensor + "]");
     }
 
     public void noteStartGps(int uid) {
@@ -256,8 +323,7 @@ public class NotificationService {
     }
 
     public void noteUserActivity(int uid, int event) {
-      System.out.println("noteUserActivity[uid=" + uid + ", event=" + event +
-                         "]");
+      System.out.println("noteUserActivity[uid=" + uid + ", event=" + event + "]");
     }
 
     public void notePhoneOn() {
@@ -269,8 +335,7 @@ public class NotificationService {
     }
 
     public void notePhoneDataConnectionState(int dataType, boolean hasData) {
-      System.out.println("notePhoneDataConnectionState[dataType=" + dataType +
-                         ", hasData=" + hasData + "]");
+      System.out.println("notePhoneDataConnectionState[dataType=" + dataType + ", hasData=" + hasData + "]");
     }
 
     public void notePhoneState(int phoneState) {
@@ -323,12 +388,11 @@ public class NotificationService {
 
     public void noteWifiMulticastDisabled(int uid) {
       System.out.println("noteWifiMulticastDisabled[uid=" + uid + "]");
-      
+
     }
 
     public void setOnBattery(boolean onBattery, int level) {
-      System.out.println("setOnBattery[onBattery=" + onBattery + ", level=" +
-                         level + "]");
+      System.out.println("setOnBattery[onBattery=" + onBattery + ", level=" + level + "]");
     }
 
     public void recordCurrentLevel(int level) {

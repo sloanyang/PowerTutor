@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.service;
 
@@ -28,7 +28,8 @@ public class UidInfo implements Serializable, Comparable {
 
   public static UidInfo obtain() {
     UidInfo result = recycler.obtain();
-    if(result != null) return result;
+    if (result != null)
+      return result;
     return new UidInfo();
   }
 
@@ -48,8 +49,7 @@ public class UidInfo implements Serializable, Comparable {
   private UidInfo() {
   }
 
-  public void init(int uid, int currentPower, long totalEnergy,
-                   long runtime) {
+  public void init(int uid, int currentPower, long totalEnergy, long runtime) {
     this.uid = uid;
     this.currentPower = currentPower;
     this.totalEnergy = totalEnergy;
@@ -57,9 +57,11 @@ public class UidInfo implements Serializable, Comparable {
   }
 
   public int compareTo(Object o) {
-    UidInfo x = (UidInfo)o;
-    if(key > x.key) return -1;
-    if(key == x.key) return 0;
+    UidInfo x = (UidInfo) o;
+    if (key > x.key)
+      return -1;
+    if (key == x.key)
+      return 0;
     return 1;
   }
 }

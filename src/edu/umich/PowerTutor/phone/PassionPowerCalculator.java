@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.phone;
 
@@ -43,10 +43,10 @@ public class PassionPowerCalculator extends DreamPowerCalculator {
 
   @Override
   public double getOledPower(OledData data) {
-    if(!data.screenOn) {
+    if (!data.screenOn) {
       return 0;
     }
-    if(data.pixPower == -1) {
+    if (data.pixPower == -1) {
       /* No pixel power available :(. */
       return coeffs.oledBasePower() + coeffs.lcdBrightness() * data.brightness;
     } else {

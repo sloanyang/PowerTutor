@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.util;
 
@@ -61,22 +61,22 @@ public class HistoryBuffer {
   /* The iteration should only increase across successive adds. */
   public synchronized void add(int uid, long iteration, int power) {
     UidData data = uidData.get(uid);
-    if(data == null) {
+    if (data == null) {
       data = new UidData();
       uidData.put(uid, data);
     }
     data.count.add(1);
-    if(power == 0) {
+    if (power == 0) {
       return;
     }
     data.sum.add(power);
-    if(maxSize == 0) {
+    if (maxSize == 0) {
       return;
     }
 
     LinkedList<HistoryDatum> queue = data.queue;
     HistoryDatum datum;
-    if(maxSize <= queue.size()) {
+    if (maxSize <= queue.size()) {
       datum = queue.getLast();
       queue.removeLast();
     } else {
@@ -86,34 +86,36 @@ public class HistoryBuffer {
     queue.addFirst(datum);
   }
 
-  /* Fills in the previous number timestamps starting from a timestamp and
-   * working backwards.  Any timestamp with no information is just treated
-   * as using no power.
+  /*
+   * Fills in the previous number timestamps starting from a timestamp and
+   * working backwards. Any timestamp with no information is just treated as
+   * using no power.
    */
   public synchronized int[] get(int uid, long timestamp, int number) {
     int ind = 0;
-    if(number < 0) number = 0;
-    if(number > maxSize) number = maxSize;
+    if (number < 0)
+      number = 0;
+    if (number > maxSize)
+      number = maxSize;
     int[] ret = new int[number];
     UidData data = uidData.get(uid);
     LinkedList<HistoryDatum> queue = data == null ? null : data.queue;
-    if(queue == null || queue.isEmpty()) {
+    if (queue == null || queue.isEmpty()) {
       return ret;
     }
-    if(timestamp == -1) {
+    if (timestamp == -1) {
       timestamp = queue.getFirst().iteration;
     }
-    for(ListIterator<HistoryDatum> iter = queue.listIterator();
-        iter.hasNext(); ) {
+    for (ListIterator<HistoryDatum> iter = queue.listIterator(); iter.hasNext();) {
       HistoryDatum datum = iter.next();
-      while(datum.iteration < timestamp && ind < number) {
+      while (datum.iteration < timestamp && ind < number) {
         ind++;
         timestamp--;
       }
-      if(ind == number) {
+      if (ind == number) {
         break;
       }
-      if(datum.iteration == timestamp) {
+      if (datum.iteration == timestamp) {
         ret[ind++] = datum.power;
         timestamp--;
       } else {
@@ -133,4 +135,3 @@ public class HistoryBuffer {
     return data == null ? 0 : data.count.get(windowType);
   }
 }
-

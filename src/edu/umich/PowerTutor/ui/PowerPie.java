@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.ui;
 
@@ -69,13 +69,11 @@ public class PowerPie extends Activity {
 
   private TextView displayText;
 
-  public static final int[] COLORS = new int[] {
-      Color.BLUE, Color.GREEN, Color.MAGENTA, Color.YELLOW,
-      Color.RED, Color.LTGRAY, Color.DKGRAY, Color.CYAN
-  };
+  public static final int[] COLORS = new int[] { Color.BLUE, Color.GREEN, Color.MAGENTA, Color.YELLOW, Color.RED,
+      Color.LTGRAY, Color.DKGRAY, Color.CYAN };
 
   public void refreshView() {
-    if(counterService == null) {
+    if (counterService == null) {
       TextView loadingText = new TextView(this);
       loadingText.setText("Waiting for profiler service...");
       loadingText.setGravity(Gravity.CENTER);
@@ -83,8 +81,9 @@ public class PowerPie extends Activity {
       return;
     }
 
-    if(uid == SystemInfo.AID_ALL) {
-      /* If we are reporting global power usage then just set noUidMask to 0 so
+    if (uid == SystemInfo.AID_ALL) {
+      /*
+       * If we are reporting global power usage then just set noUidMask to 0 so
        * that all components get displayed.
        */
       noUidMask = 0;
@@ -103,67 +102,67 @@ public class PowerPie extends Activity {
     PieChart pieChart = new PieChart(series, renderer);
     final GraphicalView chartView = new GraphicalView(this, pieChart);
 
-    /* The collector is responsible for periodically updating the screen with
+    /*
+     * The collector is responsible for periodically updating the screen with
      * new energy usage information for the current uid.
      */
     collector = new Runnable() {
       public void run() {
         try {
-          long[] totals = counterService.getTotals(uid,
-              prefs.getInt("pieWindowType", 0));
+          long[] totals = counterService.getTotals(uid, prefs.getInt("pieWindowType", 0));
           long sumTotal = 0;
-          for(int i = 0; i < totals.length; i++) {
+          for (int i = 0; i < totals.length; i++) {
             totals[i] = totals[i] * PowerEstimator.ITERATION_INTERVAL / 1000;
             sumTotal += totals[i];
           }
           int index = 0;
-          if(sumTotal < 1e-7) {
+          if (sumTotal < 1e-7) {
             series.set(0, "No data", 1);
-          } else for(int i = 0; i < totals.length; i++) {
-            if((noUidMask & 1 << i) != 0) {
-              continue;
-            }
-            String prefix;
-            double val = totals[i];
-            if(val > 1e12) {
-              prefix = "G";
-              val /= 1e12;
-            } else if(val > 1e9) {
-              prefix = "M";
-              val /= 1e9;
-            } else if(val > 1e6) {
-              prefix = "k";
-              val /= 1e6;
-            } else if(val > 1e3) {
-              prefix = "";
-              val /= 1e3;
-            } else {
-              prefix = "m";
-            }
+          } else
+            for (int i = 0; i < totals.length; i++) {
+              if ((noUidMask & 1 << i) != 0) {
+                continue;
+              }
+              String prefix;
+              double val = totals[i];
+              if (val > 1e12) {
+                prefix = "G";
+                val /= 1e12;
+              } else if (val > 1e9) {
+                prefix = "M";
+                val /= 1e9;
+              } else if (val > 1e6) {
+                prefix = "k";
+                val /= 1e6;
+              } else if (val > 1e3) {
+                prefix = "";
+                val /= 1e3;
+              } else {
+                prefix = "m";
+              }
 
-            String label = String.format("%1$s %2$.1f %3$sJ",
-                    componentNames[i], val, prefix);
-            if(series.getItemCount() == index) {
-              SimpleSeriesRenderer r = new SimpleSeriesRenderer();
-              r.setColor(COLORS[i]);
-              renderer.addSeriesRenderer(r);
-                
-              series.add(label, totals[i]);
-            } else {
-              series.set(index, label, totals[i]);
+              String label = String.format("%1$s %2$.1f %3$sJ", componentNames[i], val, prefix);
+              if (series.getItemCount() == index) {
+                SimpleSeriesRenderer r = new SimpleSeriesRenderer();
+                r.setColor(COLORS[i]);
+                renderer.addSeriesRenderer(r);
+
+                series.add(label, totals[i]);
+              } else {
+                series.set(index, label, totals[i]);
+              }
+              index++;
             }
-            index++;
-          }
           chartView.invalidate();
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
           Log.w(TAG, "Failed to contact power tutor profiling service");
         }
-        if(handler != null) {
+        if (handler != null) {
           handler.postDelayed(this, 2 * PowerEstimator.ITERATION_INTERVAL);
         }
       }
     };
-    if(handler != null) {
+    if (handler != null) {
       handler.post(collector);
     }
 
@@ -175,21 +174,22 @@ public class PowerPie extends Activity {
   }
 
   public void updateDisplayText() {
-    displayText.setText("Displaying energy usage over " +
-        Counter.WINDOW_DESCS[prefs.getInt("pieWindowType", 0)] + " for " +
-        (uid == SystemInfo.AID_ALL ? " the entire phone." :
-        SystemInfo.getInstance().getUidName(uid, getPackageManager()) + "."));
+    displayText.setText("Displaying energy usage over "
+        + Counter.WINDOW_DESCS[prefs.getInt("pieWindowType", 0)]
+        + " for "
+        + (uid == SystemInfo.AID_ALL ? " the entire phone." : SystemInfo.getInstance().getUidName(uid,
+            getPackageManager())
+            + "."));
   }
 
   class CounterServiceConnection implements ServiceConnection {
-    public void onServiceConnected(ComponentName className, 
-                                   IBinder boundService ) {
-      counterService = ICounterService.Stub.asInterface((IBinder)boundService);
+    public void onServiceConnected(ComponentName className, IBinder boundService) {
+      counterService = ICounterService.Stub.asInterface((IBinder) boundService);
       try {
         componentNames = counterService.getComponents();
         noUidMask = counterService.getNoUidMask();
         refreshView();
-      } catch(RemoteException e) {
+      } catch (RemoteException e) {
         counterService = null;
       }
     }
@@ -208,7 +208,7 @@ public class PowerPie extends Activity {
     prefs = PreferenceManager.getDefaultSharedPreferences(this);
     uid = getIntent().getIntExtra("uid", SystemInfo.AID_ALL);
 
-    if(savedInstanceState != null) {
+    if (savedInstanceState != null) {
       componentNames = savedInstanceState.getStringArray("componentNames");
       noUidMask = savedInstanceState.getInt("noUidMask");
     }
@@ -230,7 +230,7 @@ public class PowerPie extends Activity {
   protected void onPause() {
     super.onPause();
     getApplicationContext().unbindService(conn);
-    if(collector != null) {
+    if (collector != null) {
       handler.removeCallbacks(collector);
       handler = null;
     }
@@ -254,11 +254,12 @@ public class PowerPie extends Activity {
 
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
-    /* We need to make sure that the user can't cause any of the dialogs to be
+    /*
+     * We need to make sure that the user can't cause any of the dialogs to be
      * created before we have contacted the Power Tutor service to get the
      * component names and such.
      */
-    for(int i = 0; i < menu.size(); i++) {
+    for (int i = 0; i < menu.size(); i++) {
       menu.getItem(i).setEnabled(counterService != null);
     }
     return true;
@@ -266,10 +267,10 @@ public class PowerPie extends Activity {
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    switch(item.getItemId()) {
-      case MENU_WINDOW:
-        showDialog(DIALOG_WINDOW);
-        return true;
+    switch (item.getItemId()) {
+    case MENU_WINDOW:
+      showDialog(DIALOG_WINDOW);
+      return true;
     }
     return false;
   }
@@ -277,19 +278,17 @@ public class PowerPie extends Activity {
   @Override
   protected Dialog onCreateDialog(int id) {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    switch(id) {
-      case DIALOG_WINDOW:
-        builder.setTitle("Select window type");
-        builder.setItems(Counter.WINDOW_NAMES,
-          new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int item) {
-              prefs.edit().putInt("pieWindowType", item).commit();
-              updateDisplayText();
-            }
-        });
-        return builder.create();
+    switch (id) {
+    case DIALOG_WINDOW:
+      builder.setTitle("Select window type");
+      builder.setItems(Counter.WINDOW_NAMES, new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int item) {
+          prefs.edit().putInt("pieWindowType", item).commit();
+          updateDisplayText();
+        }
+      });
+      return builder.create();
     }
     return null;
   }
 }
-

@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.service;
 
@@ -37,15 +37,19 @@ public class LogUploader {
     return false;
   }
 
-  /* Returns true if the log should be uploaded now.  This may depend on log
-   * file size, network conditions, etc. */
+  /*
+   * Returns true if the log should be uploaded now. This may depend on log file
+   * size, network conditions, etc.
+   */
   // TODO: This should probably give the file name of the log
   public boolean shouldUpload() {
     return false;
   }
 
-  /* Called when the device is plugged in or unplugged.  The intended use of
-   * this is to improve upload policy decisions. */
+  /*
+   * Called when the device is plugged in or unplugged. The intended use of this
+   * is to improve upload policy decisions.
+   */
   public void plug(boolean plugged) {
   }
 

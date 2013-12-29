@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.components;
 
@@ -47,7 +47,8 @@ public class LCD extends PowerComponent {
 
     public static LcdData obtain() {
       LcdData result = recycler.obtain();
-      if(result != null) return result;
+      if (result != null)
+        return result;
       return new LcdData();
     }
 
@@ -56,9 +57,9 @@ public class LCD extends PowerComponent {
       recycler.recycle(this);
     }
 
-	  public int brightness;
-	  public boolean screenOn;
-	
+    public int brightness;
+    public boolean screenOn;
+
     private LcdData() {
     }
 
@@ -66,20 +67,17 @@ public class LCD extends PowerComponent {
       this.brightness = brightness;
       this.screenOn = screenOn;
     }
-	
-	  public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
+
+    public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
       StringBuilder res = new StringBuilder();
-      res.append("LCD-brightness ").append(brightness)
-         .append("\nLCD-screen-on ").append(screenOn).append("\n");
+      res.append("LCD-brightness ").append(brightness).append("\nLCD-screen-on ").append(screenOn).append("\n");
       out.write(res.toString());
     }
   }
 
-	private final String TAG = "LCD";
-  private static final String[] BACKLIGHT_BRIGHTNESS_FILES = {
-    "/sys/devices/virtual/leds/lcd-backlight/brightness",
-    "/sys/devices/platform/trout-backlight.0/leds/lcd-backlight/brightness",
-  };
+  private final String TAG = "LCD";
+  private static final String[] BACKLIGHT_BRIGHTNESS_FILES = { "/sys/devices/virtual/leds/lcd-backlight/brightness",
+      "/sys/devices/platform/trout-backlight.0/leds/lcd-backlight/brightness", };
 
   private Context context;
   private ForegroundDetector foregroundDetector;
@@ -92,16 +90,15 @@ public class LCD extends PowerComponent {
     this.context = context;
     screenOn = true;
 
-    if(context == null) {
+    if (context == null) {
       return;
     }
 
-    foregroundDetector = new ForegroundDetector((ActivityManager)
-        context.getSystemService(context.ACTIVITY_SERVICE));
+    foregroundDetector = new ForegroundDetector((ActivityManager) context.getSystemService(context.ACTIVITY_SERVICE));
     broadcastReceiver = new BroadcastReceiver() {
       public void onReceive(Context context, Intent intent) {
-        synchronized(this) {
-          if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+        synchronized (this) {
+          if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
             screenOn = false;
           } else if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
             screenOn = true;
@@ -114,8 +111,8 @@ public class LCD extends PowerComponent {
     intentFilter.addAction(Intent.ACTION_SCREEN_ON);
     context.registerReceiver(broadcastReceiver, intentFilter);
 
-    for(int i = 0; i < BACKLIGHT_BRIGHTNESS_FILES.length; i++) {
-      if(new File(BACKLIGHT_BRIGHTNESS_FILES[i]).exists()) {
+    for (int i = 0; i < BACKLIGHT_BRIGHTNESS_FILES.length; i++) {
+      if (new File(BACKLIGHT_BRIGHTNESS_FILES[i]).exists()) {
         brightnessFile = BACKLIGHT_BRIGHTNESS_FILES[i];
       }
     }
@@ -125,31 +122,29 @@ public class LCD extends PowerComponent {
   protected void onExit() {
     context.unregisterReceiver(broadcastReceiver);
     super.onExit();
-  } 
+  }
 
   @Override
   public IterationData calculateIteration(long iteration) {
     IterationData result = IterationData.obtain();
 
     boolean screen;
-    synchronized(this) {
+    synchronized (this) {
       screen = screenOn;
     }
 
     int brightness;
-    if(brightnessFile != null) {
-      brightness = (int)SystemInfo.getInstance()
-          .readLongFromFile(brightnessFile);
+    if (brightnessFile != null) {
+      brightness = (int) SystemInfo.getInstance().readLongFromFile(brightnessFile);
     } else {
       try {
-        brightness = Settings.System.getInt(context.getContentResolver(),
-                                            Settings.System.SCREEN_BRIGHTNESS);
-      } catch(Settings.SettingNotFoundException ex) {
+        brightness = Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
+      } catch (Settings.SettingNotFoundException ex) {
         Log.w(TAG, "Could not retrieve brightness information");
         return result;
       }
     }
-    if(brightness < 0 || 255 < brightness) {
+    if (brightness < 0 || 255 < brightness) {
       Log.w(TAG, "Could not retrieve brightness information");
       return result;
     }
@@ -158,7 +153,7 @@ public class LCD extends PowerComponent {
     data.init(brightness, screen);
     result.setPowerData(data);
 
-    if(screen) {
+    if (screen) {
       LcdData uidData = LcdData.obtain();
       uidData.init(brightness, screen);
       result.addUidPowerData(foregroundDetector.getForegroundUid(), uidData);

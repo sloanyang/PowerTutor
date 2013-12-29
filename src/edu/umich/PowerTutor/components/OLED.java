@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.components;
 
@@ -60,7 +60,8 @@ public class OLED extends PowerComponent {
 
     public static OledData obtain() {
       OledData result = recycler.obtain();
-      if(result != null) return result;
+      if (result != null)
+        return result;
       return new OledData();
     }
 
@@ -69,10 +70,10 @@ public class OLED extends PowerComponent {
       recycler.recycle(this);
     }
 
-	  public int brightness;
+    public int brightness;
     public double pixPower;
-	  public boolean screenOn;
-	
+    public boolean screenOn;
+
     private OledData() {
     }
 
@@ -85,20 +86,18 @@ public class OLED extends PowerComponent {
       this.brightness = brightness;
       this.pixPower = pixPower;
     }
-	
-	  public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
+
+    public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
       out.write("OLED-brightness " + brightness + "\n");
       out.write("OLED-pix-power " + pixPower + "\n");
       out.write("OLED-screen-on " + screenOn + "\n");
     }
   }
 
-	private static final String TAG = "OLED";
-  private static final String[] BACKLIGHT_BRIGHTNESS_FILES = {
-    "/sys/class/leds/lcd-backlight/brightness",
-    "/sys/devices/virtual/leds/lcd-backlight/brightness",
-    "/sys/devices/platform/trout-backlight.0/leds/lcd-backlight/brightness",
-  };
+  private static final String TAG = "OLED";
+  private static final String[] BACKLIGHT_BRIGHTNESS_FILES = { "/sys/class/leds/lcd-backlight/brightness",
+      "/sys/devices/virtual/leds/lcd-backlight/brightness",
+      "/sys/devices/platform/trout-backlight.0/leds/lcd-backlight/brightness", };
 
   private Context context;
   private ForegroundDetector foregroundDetector;
@@ -115,7 +114,8 @@ public class OLED extends PowerComponent {
 
   private String brightnessFile;
 
-  /* Coefficients pre-computed for pix power calculations.
+  /*
+   * Coefficients pre-computed for pix power calculations.
    */
   private double rcoef;
   private double gcoef;
@@ -126,12 +126,11 @@ public class OLED extends PowerComponent {
     this.context = context;
     screenOn = true;
 
-    foregroundDetector = new ForegroundDetector((ActivityManager)
-        context.getSystemService(context.ACTIVITY_SERVICE));
+    foregroundDetector = new ForegroundDetector((ActivityManager) context.getSystemService(context.ACTIVITY_SERVICE));
     broadcastReceiver = new BroadcastReceiver() {
       public void onReceive(Context context, Intent intent) {
-        synchronized(this) {
-          if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+        synchronized (this) {
+          if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
             screenOn = false;
           } else if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
             screenOn = true;
@@ -145,54 +144,51 @@ public class OLED extends PowerComponent {
     context.registerReceiver(broadcastReceiver, intentFilter);
 
     frameBufferFile = new File("/dev/fb0");
-    if(!frameBufferFile.exists()) {
+    if (!frameBufferFile.exists()) {
       frameBufferFile = new File("/dev/graphics/fb0");
     }
-    if(frameBufferFile.exists()) try {
-      /* Check if we already have permission to read the frame buffer. */
-      boolean readOk = false;
+    if (frameBufferFile.exists())
       try {
-        RandomAccessFile fin = new RandomAccessFile(frameBufferFile, "r");
-        int b = fin.read();
-        fin.close();
-        readOk = true;
-      } catch(IOException e) {
-      }
-      /* Don't have permission, try to change permission as root. */
-      if(!readOk) {
-        java.lang.Process p = Runtime.getRuntime().exec("su");
-        DataOutputStream os = new DataOutputStream(p.getOutputStream());
-        os.writeBytes("chown " + android.os.Process.myUid() +
-                      " " + frameBufferFile.getAbsolutePath() + "\n");
-        os.writeBytes("chown app_" + (android.os.Process.myUid() -
-                      SystemInfo.AID_APP) +
-                      " " + frameBufferFile.getAbsolutePath() + "\n");
-        os.writeBytes("chmod 660 " + frameBufferFile.getAbsolutePath() + "\n");
-        os.writeBytes("exit\n");
-        os.flush();
-        p.waitFor();
-        if(p.exitValue() != 0) {
-          Log.i(TAG, "failed to change permissions on frame buffer");
+        /* Check if we already have permission to read the frame buffer. */
+        boolean readOk = false;
+        try {
+          RandomAccessFile fin = new RandomAccessFile(frameBufferFile, "r");
+          int b = fin.read();
+          fin.close();
+          readOk = true;
+        } catch (IOException e) {
         }
+        /* Don't have permission, try to change permission as root. */
+        if (!readOk) {
+          java.lang.Process p = Runtime.getRuntime().exec("su");
+          DataOutputStream os = new DataOutputStream(p.getOutputStream());
+          os.writeBytes("chown " + android.os.Process.myUid() + " " + frameBufferFile.getAbsolutePath() + "\n");
+          os.writeBytes("chown app_" + (android.os.Process.myUid() - SystemInfo.AID_APP) + " "
+              + frameBufferFile.getAbsolutePath() + "\n");
+          os.writeBytes("chmod 660 " + frameBufferFile.getAbsolutePath() + "\n");
+          os.writeBytes("exit\n");
+          os.flush();
+          p.waitFor();
+          if (p.exitValue() != 0) {
+            Log.i(TAG, "failed to change permissions on frame buffer");
+          }
+        }
+      } catch (InterruptedException e) {
+        Log.i(TAG, "changing permissions on frame buffer interrupted");
+      } catch (IOException e) {
+        Log.i(TAG, "unexpected exception while changing permission on " + "frame buffer");
+        e.printStackTrace();
       }
-    } catch (InterruptedException e) {
-      Log.i(TAG, "changing permissions on frame buffer interrupted");
-    } catch (IOException e) {
-      Log.i(TAG, "unexpected exception while changing permission on " +
-            "frame buffer");
-      e.printStackTrace();
-    }
 
     DisplayMetrics metrics = new DisplayMetrics();
-    WindowManager windowManager =
-        (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
+    WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
     windowManager.getDefaultDisplay().getMetrics(metrics);
     screenWidth = metrics.widthPixels;
     screenHeight = metrics.heightPixels;
 
     Random r = new Random();
     samples = new int[NUMBER_OF_SAMPLES];
-    for(int i = 0; i < NUMBER_OF_SAMPLES; i++) {
+    for (int i = 0; i < NUMBER_OF_SAMPLES; i++) {
       int a = screenWidth * screenHeight * i / NUMBER_OF_SAMPLES;
       int b = screenWidth * screenHeight * (i + 1) / NUMBER_OF_SAMPLES;
       samples[i] = a + r.nextInt(b - a);
@@ -204,8 +200,8 @@ public class OLED extends PowerComponent {
     bcoef = channel[2] / 255 / 255;
     modul_coef = constants.oledModulation() / 255 / 255 / 3 / 3;
 
-    for(int i = 0; i < BACKLIGHT_BRIGHTNESS_FILES.length; i++) {
-      if(new File(BACKLIGHT_BRIGHTNESS_FILES[i]).exists()) {
+    for (int i = 0; i < BACKLIGHT_BRIGHTNESS_FILES.length; i++) {
+      if (new File(BACKLIGHT_BRIGHTNESS_FILES[i]).exists()) {
         brightnessFile = BACKLIGHT_BRIGHTNESS_FILES[i];
       }
     }
@@ -215,79 +211,78 @@ public class OLED extends PowerComponent {
   protected void onExit() {
     context.unregisterReceiver(broadcastReceiver);
     super.onExit();
-  } 
+  }
 
   @Override
   public IterationData calculateIteration(long iteration) {
     IterationData result = IterationData.obtain();
 
     boolean screen;
-    synchronized(this) {
+    synchronized (this) {
       screen = screenOn;
     }
 
     int brightness;
-    if(brightnessFile != null) {
-      brightness = (int)SystemInfo.getInstance()
-          .readLongFromFile(brightnessFile);
+    if (brightnessFile != null) {
+      brightness = (int) SystemInfo.getInstance().readLongFromFile(brightnessFile);
     } else {
       try {
-        brightness = Settings.System.getInt(context.getContentResolver(),
-                                            Settings.System.SCREEN_BRIGHTNESS);
-      } catch(Settings.SettingNotFoundException ex) {
+        brightness = Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
+      } catch (Settings.SettingNotFoundException ex) {
         Log.w(TAG, "Could not retrieve brightness information");
         return result;
       }
     }
-    if(brightness < 0 || 255 < brightness) {
+    if (brightness < 0 || 255 < brightness) {
       Log.w(TAG, "Could not retrieve brightness information");
       return result;
     }
 
     double pixPower = 0;
-    if(screen && frameBufferFile.exists()) {
-      if(NativeLoader.jniLoaded()) {
+    if (screen && frameBufferFile.exists()) {
+      if (NativeLoader.jniLoaded()) {
         pixPower = getScreenPixPower(rcoef, gcoef, bcoef, modul_coef);
-      } else try {
-        RandomAccessFile fin = new RandomAccessFile(frameBufferFile, "r");
+      } else
+        try {
+          RandomAccessFile fin = new RandomAccessFile(frameBufferFile, "r");
 
-        for(int x : samples) {
-          fin.seek(x * 4);
-          int px = fin.readInt();
-          int b = px >> 8 & 0xFF;
-          int g = px >> 16 & 0xFF;
-          int r = px >> 24 & 0xFF;
+          for (int x : samples) {
+            fin.seek(x * 4);
+            int px = fin.readInt();
+            int b = px >> 8 & 0xFF;
+            int g = px >> 16 & 0xFF;
+            int r = px >> 24 & 0xFF;
 
-          /* Calculate the power usage of this one pixel if it were at full
-           * brightness.  Linearly scale by brightness to get true power
-           * consumption.  To calculate whole screen compute average of sampled
-           * region and multiply by number of pixels.
-           */
-          int modul_val = r + g + b;
-          pixPower += rcoef * (r * r) + gcoef * (g * g) + bcoef * (b * b) -
-                      modul_coef * (modul_val * modul_val);
+            /*
+             * Calculate the power usage of this one pixel if it were at full
+             * brightness. Linearly scale by brightness to get true power
+             * consumption. To calculate whole screen compute average of sampled
+             * region and multiply by number of pixels.
+             */
+            int modul_val = r + g + b;
+            pixPower += rcoef * (r * r) + gcoef * (g * g) + bcoef * (b * b) - modul_coef * (modul_val * modul_val);
+          }
+          fin.close();
+        } catch (FileNotFoundException e) {
+          pixPower = -1;
+        } catch (IOException e) {
+          pixPower = -1;
+          e.printStackTrace();
         }
-        fin.close();
-      } catch(FileNotFoundException e) {
-        pixPower = -1;
-      } catch(IOException e) {
-        pixPower = -1;
-        e.printStackTrace();
-      }
-      if(pixPower >= 0) {
+      if (pixPower >= 0) {
         pixPower *= 1.0 * screenWidth * screenHeight / NUMBER_OF_SAMPLES;
       }
     }
 
     OledData data = OledData.obtain();
-    if(!screen) {
+    if (!screen) {
       data.init();
     } else {
       data.init(brightness, pixPower);
     }
     result.setPowerData(data);
 
-    if(screen) {
+    if (screen) {
       OledData uidData = OledData.obtain();
       uidData.init(brightness, pixPower);
       result.addUidPowerData(foregroundDetector.getForegroundUid(), uidData);
@@ -306,6 +301,5 @@ public class OLED extends PowerComponent {
     return "OLED";
   }
 
-  public static native double getScreenPixPower(double rcoef, double gcoef,
-                                            double bcoef, double modul_coef);
+  public static native double getScreenPixPower(double rcoef, double gcoef, double bcoef, double modul_coef);
 }

@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Please send inquiries to powertutor@umich.edu
-*/
+ */
 
 package edu.umich.PowerTutor.components;
 
@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class Sensors extends PowerComponent {
-	private final String TAG = "Sensors";
+  private final String TAG = "Sensors";
   public static final int MAX_SENSORS = 10;
 
   public static class SensorData extends PowerData {
@@ -48,7 +48,8 @@ public class Sensors extends PowerComponent {
 
     public static SensorData obtain() {
       SensorData result = recycler.obtain();
-      if(result != null) return result;
+      if (result != null)
+        return result;
       return new SensorData();
     }
 
@@ -56,19 +57,18 @@ public class Sensors extends PowerComponent {
     public void recycle() {
       recycler.recycle(this);
     }
-    
+
     public double[] onTime;
 
     private SensorData() {
       onTime = new double[MAX_SENSORS];
     }
 
-	  public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
+    public void writeLogDataInfo(OutputStreamWriter out) throws IOException {
       StringBuilder res = new StringBuilder();
-      for(int i = 0; i < MAX_SENSORS; i++) {
-        if(onTime[i] > 1e-7) {
-          res.append("Sensors-time ").append(i).append(" ")
-             .append(onTime[i]).append("\n");
+      for (int i = 0; i < MAX_SENSORS; i++) {
+        if (onTime[i] > 1e-7) {
+          res.append("Sensors-time ").append(i).append(" ").append(onTime[i]).append("\n");
         }
       }
       out.write(res.toString());
@@ -87,23 +87,22 @@ public class Sensors extends PowerComponent {
     sensorState = new SensorStateKeeper();
     uidStates = new SparseArray<SensorStateKeeper>();
 
-    if(!NotificationService.available()) {
-      Log.w(TAG, "Sensor component created although no notification service " +
-            "available to receive sensor usage information");
+    if (!NotificationService.available()) {
+      Log.w(TAG, "Sensor component created although no notification service "
+          + "available to receive sensor usage information");
       return;
     }
-    sensorManager = (SensorManager)context.getSystemService(
-        Context.SENSOR_SERVICE);
+    sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
     sensorHook = new NotificationService.DefaultReceiver() {
       public void noteStartSensor(int uid, int sensor) {
-        if(sensor < 0 || MAX_SENSORS <= sensor) {
+        if (sensor < 0 || MAX_SENSORS <= sensor) {
           Log.w(TAG, "Received sensor outside of accepted range");
           return;
         }
-        synchronized(sensorState) {
+        synchronized (sensorState) {
           sensorState.startSensor(sensor);
           SensorStateKeeper uidState = uidStates.get(uid);
-          if(uidState == null) {
+          if (uidState == null) {
             uidState = new SensorStateKeeper();
             uidStates.put(uid, uidState);
           }
@@ -112,14 +111,14 @@ public class Sensors extends PowerComponent {
       }
 
       public void noteStopSensor(int uid, int sensor) {
-        if(sensor < 0 || MAX_SENSORS <= sensor) {
+        if (sensor < 0 || MAX_SENSORS <= sensor) {
           Log.w(TAG, "Received sensor outside of accepted range");
           return;
         }
-        synchronized(sensorState) {
+        synchronized (sensorState) {
           sensorState.stopSensor(sensor);
           SensorStateKeeper uidState = uidStates.get(uid);
-          if(uidState == null) {
+          if (uidState == null) {
             uidState = new SensorStateKeeper();
             uidStates.put(uid, uidState);
           }
@@ -134,24 +133,24 @@ public class Sensors extends PowerComponent {
   protected void onExit() {
     super.onExit();
     NotificationService.removeHook(sensorHook);
-  } 
+  }
 
   @Override
   public IterationData calculateIteration(long iteration) {
     IterationData result = IterationData.obtain();
-    synchronized(sensorState) {
+    synchronized (sensorState) {
       SensorData globalData = SensorData.obtain();
       sensorState.setupSensorTimes(globalData.onTime, iterationInterval);
       result.setPowerData(globalData);
 
-      for(int i = 0; i < uidStates.size(); i++) {
+      for (int i = 0; i < uidStates.size(); i++) {
         int uid = uidStates.keyAt(i);
         SensorStateKeeper uidState = uidStates.valueAt(i);
         SensorData uidData = SensorData.obtain();
         uidState.setupSensorTimes(uidData.onTime, iterationInterval);
         result.addUidPowerData(uid, uidData);
 
-        if(uidState.sensorsOn() == 0) {
+        if (uidState.sensorsOn() == 0) {
           uidStates.remove(uid);
           i--;
         }
@@ -173,16 +172,16 @@ public class Sensors extends PowerComponent {
     }
 
     public void startSensor(int sensor) {
-      if(nesting[sensor]++ == 0) {
+      if (nesting[sensor]++ == 0) {
         times[sensor] -= SystemClock.elapsedRealtime() - lastTime;
         count++;
       }
     }
 
     public void stopSensor(int sensor) {
-      if(nesting[sensor] == 0) {
+      if (nesting[sensor] == 0) {
         return;
-      } else if(--nesting[sensor] == 0) {
+      } else if (--nesting[sensor] == 0) {
         times[sensor] += SystemClock.elapsedRealtime() - lastTime;
         count--;
       }
@@ -195,10 +194,10 @@ public class Sensors extends PowerComponent {
     public void setupSensorTimes(double[] sensorTimes, long iterationInterval) {
       long now = SystemClock.elapsedRealtime();
       long div = now - lastTime;
-      if(div <= 0) div = 1;
-      for(int i = 0; i < MAX_SENSORS; i++) {
-        sensorTimes[i] = 1.0 * (times[i] +
-                         (nesting[i] > 0 ? now - lastTime : 0)) / div;
+      if (div <= 0)
+        div = 1;
+      for (int i = 0; i < MAX_SENSORS; i++) {
+        sensorTimes[i] = 1.0 * (times[i] + (nesting[i] > 0 ? now - lastTime : 0)) / div;
         times[i] = 0;
       }
       lastTime = now;
