@@ -19,24 +19,19 @@ Please send inquiries to powertutor@umich.edu
 
 package edu.umich.PowerTutor.components;
 
-import edu.umich.PowerTutor.PowerNotifications;
-import edu.umich.PowerTutor.service.IterationData;
-import edu.umich.PowerTutor.service.PowerData;
-import edu.umich.PowerTutor.util.NotificationService;
-import edu.umich.PowerTutor.util.Recycler;
-import edu.umich.PowerTutor.util.SystemInfo;
+import java.io.IOException;
+import java.util.List;
 
 import android.content.Context;
 import android.hardware.SensorManager;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.SparseArray;
-
-import java.io.IOException;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Map;
-import java.util.TreeMap;
+import edu.umich.PowerTutor.PowerNotifications;
+import edu.umich.PowerTutor.service.IterationData;
+import edu.umich.PowerTutor.service.PowerData;
+import edu.umich.PowerTutor.util.NotificationService;
+import edu.umich.PowerTutor.util.Recycler;
 
 public class Sensors extends PowerComponent {
   private final String TAG = "Sensors";
@@ -63,7 +58,7 @@ public class Sensors extends PowerComponent {
       onTime = new double[MAX_SENSORS];
     }
 
-    public String getLogDataInfo() throws IOException {
+    public String getTextLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       for (int i = 0; i < MAX_SENSORS; i++) {
         if (onTime[i] > 1e-7) {
@@ -72,6 +67,18 @@ public class Sensors extends PowerComponent {
       }
       return (res.toString());
     }
+
+    @Override
+    public List<String> getCsvLogDataInfo() throws IOException {
+      List<String> strings = super.getCsvLogDataInfo();
+      for (int i = 0; i < MAX_SENSORS; i++) {
+        if (onTime[i] > 1e-7) {
+          strings.add(onTime[i] + "");
+        }
+      }
+      return strings;
+    }
+
   }
 
   private Context context;

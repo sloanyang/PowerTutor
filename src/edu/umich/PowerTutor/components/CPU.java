@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 
 import android.util.Log;
 import android.util.SparseArray;
@@ -61,11 +62,21 @@ public class CPU extends PowerComponent {
       this.freq = freq;
     }
 
-    public String getLogDataInfo() throws IOException {
+    public String getTextLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("CPU-sys ").append((long) Math.round(sysPerc)).append("\nCPU-usr ").append((long) Math.round(usrPerc))
           .append("\nCPU-freq ").append(freq).append("\n");
       return res.toString();
+    }
+
+    @Override
+    public List<String> getCsvLogDataInfo() throws IOException {
+      List<String> strings = super.getCsvLogDataInfo();
+      strings.add(Math.round(sysPerc) + "");
+      strings.add(Math.round(usrPerc) + "");
+      strings.add(Math.round(freq) + "");
+
+      return strings;
     }
   }
 

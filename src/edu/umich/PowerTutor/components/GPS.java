@@ -21,6 +21,7 @@ package edu.umich.PowerTutor.components;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import android.content.Context;
 import android.location.GpsSatellite;
@@ -74,7 +75,7 @@ public class GPS extends PowerComponent {
     }
 
     @Override
-    public String getLogDataInfo() throws IOException {
+    public String getTextLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("GPS-state-times");
       for (int i = 0; i < GPS.POWER_STATES; i++) {
@@ -82,6 +83,17 @@ public class GPS extends PowerComponent {
       }
       res.append("\nGPS-sattelites ").append(satellites).append("\n");
       return (res.toString());
+    }
+
+    @Override
+    public List<String> getCsvLogDataInfo() throws IOException {
+      List<String> strings = super.getCsvLogDataInfo();
+      strings.add(satellites + "");
+      for (int i = 0; i < GPS.POWER_STATES; i++) {
+        strings.add("" + stateTimes[i]);
+      }
+      return strings;
+
     }
   }
 

@@ -20,7 +20,8 @@ Please send inquiries to powertutor@umich.edu
 package edu.umich.PowerTutor.service;
 
 import java.io.IOException;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class PowerData {
   private int cachedPower;
@@ -43,6 +44,12 @@ public abstract class PowerData {
   public void recycle() {
   }
 
-  /* Simply writes out log information to the passed stream. */
-  public abstract String getLogDataInfo() throws IOException;
+  /* Simply returns log information that is printable. */
+  public abstract String getTextLogDataInfo() throws IOException;
+
+  public List<String> getCsvLogDataInfo() throws IOException {
+    List<String> strings = new ArrayList<String>();
+    strings.add(getCachedPower() + "");
+    return strings;
+  }
 }

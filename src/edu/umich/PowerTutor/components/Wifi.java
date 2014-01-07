@@ -21,6 +21,7 @@ package edu.umich.PowerTutor.components;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
@@ -75,7 +76,7 @@ public class Wifi extends PowerComponent {
       wifiOn = false;
     }
 
-    public String getLogDataInfo() throws IOException {
+    public String getTextLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("Wifi-on ").append(wifiOn).append("\n");
       if (wifiOn) {
@@ -85,6 +86,21 @@ public class Wifi extends PowerComponent {
             .append("\nWifi-state ").append(Wifi.POWER_STATE_NAMES[powerState]).append("\n");
       }
       return (res.toString());
+    }
+
+    @Override
+    public List<String> getCsvLogDataInfo() throws IOException {
+      List<String> strings = super.getCsvLogDataInfo();
+      strings.add(wifiOn ? "on" : "off");
+      if (wifiOn) {
+        strings.add("" + (long) Math.round(packets));
+        strings.add("" + uplinkBytes);
+        strings.add("" + downlinkBytes);
+        strings.add("" + uplinkRate);
+        strings.add("" + linkSpeed);
+        strings.add(Wifi.POWER_STATE_NAMES[powerState]);
+      }
+      return strings;
     }
   }
 

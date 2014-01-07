@@ -21,6 +21,7 @@ package edu.umich.PowerTutor.components;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import android.content.Context;
 import android.os.SystemClock;
@@ -73,7 +74,7 @@ public class Threeg extends PowerComponent {
       this.oper = oper;
     }
 
-    public String getLogDataInfo() throws IOException {
+    public String getTextLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("3G-on ").append(threegOn).append("\n");
       if (threegOn) {
@@ -82,6 +83,18 @@ public class Threeg extends PowerComponent {
             .append("\n3G-oper ").append(oper).append("\n");
       }
       return (res.toString());
+    }
+
+    @Override
+    public List<String> getCsvLogDataInfo() throws IOException {
+      List<String> strings = super.getCsvLogDataInfo();
+      strings.add(threegOn ? "on" : "off");
+      strings.add(uplinkBytes + "");
+      strings.add(downlinkBytes + "");
+      strings.add(packets + "");
+      strings.add(Threeg.POWER_STATE_NAMES[powerState]);
+      strings.add(oper);
+      return strings;
     }
   }
 

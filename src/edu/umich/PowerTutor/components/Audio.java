@@ -20,6 +20,7 @@ Please send inquiries to powertutor@umich.edu
 package edu.umich.PowerTutor.components;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.TreeSet;
 
 import android.content.Context;
@@ -57,8 +58,16 @@ public class Audio extends PowerComponent {
       this.musicOn = musicOn;
     }
 
-    public String getLogDataInfo() throws IOException {
+    public String getTextLogDataInfo() throws IOException {
       return "Audio-on " + musicOn + "\n";
+    }
+
+    @Override
+    public List<String> getCsvLogDataInfo() throws IOException {
+
+      List<String> strings = super.getCsvLogDataInfo();
+      strings.add(musicOn + "");
+      return strings;
     }
   }
 

@@ -21,6 +21,7 @@ package edu.umich.PowerTutor.components;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
@@ -62,10 +63,18 @@ public class LCD extends PowerComponent {
       this.screenOn = screenOn;
     }
 
-    public String getLogDataInfo() throws IOException {
+    public String getTextLogDataInfo() throws IOException {
       StringBuilder res = new StringBuilder();
       res.append("LCD-brightness ").append(brightness).append("\nLCD-screen-on ").append(screenOn).append("\n");
       return res.toString();
+    }
+
+    @Override
+    public List<String> getCsvLogDataInfo() throws IOException {
+      List<String> strings = super.getCsvLogDataInfo();
+      strings.add(brightness + "");
+      strings.add(screenOn ? "on" : "off");
+      return strings;
     }
   }
 

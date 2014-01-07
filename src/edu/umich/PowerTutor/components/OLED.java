@@ -76,7 +76,7 @@ public class OLED extends PowerComponent {
       this.pixPower = pixPower;
     }
 
-    public String getLogDataInfo() throws IOException {
+    public String getTextLogDataInfo() throws IOException {
       StringBuilder sb = new StringBuilder();
       sb.append("OLED-brightness " + brightness + "\n");
       sb.append("OLED-pix-power " + pixPower + "\n");

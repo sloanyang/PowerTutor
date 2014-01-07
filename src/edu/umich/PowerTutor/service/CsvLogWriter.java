@@ -26,8 +26,9 @@ public class CsvLogWriter implements LogWriter {
     writeCell("" + iteration);
     writeCell("" + uid);
     if (powerData != null) {
-      writeCell("" + powerData.getCachedPower());
-      writeCell(powerData.getLogDataInfo());
+      for (String value : powerData.getCsvLogDataInfo()) {
+        writeCell(value);
+      }
     }
     osw.write(NL);
     osw.flush();
