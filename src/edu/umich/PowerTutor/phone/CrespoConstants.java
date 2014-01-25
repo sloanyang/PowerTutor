@@ -79,11 +79,11 @@ public class CrespoConstants extends DreamConstants {
   }
 
   public double wifiLowPower() {
-    return 4;
+    return 12;
   }
 
   public double wifiHighPower() {
-    return 4;
+    return 12;
   }
 
   public double wifiLowHighTransition() {
@@ -115,15 +115,20 @@ public class CrespoConstants extends DreamConstants {
    * wifiCostPerByte = WIFI_POWER / (WIFI_BPS / 8); if (wifiData + mobileData !=
    * 0) { return (mobileCostPerByte * mobileData + wifiCostPerByte * wifiData) /
    * (mobileData + wifiData); } else { return 0; } }
+   * 
+   * WIFI_ACTIVE = 150mA at 65 MBps speed = 540 mW at nominal 3.6 Volts at 65
+   * MBps. wb = 540 / 65 <- mWs per MBps power(speed) = wb * speed <- in mW
    */
-  private static final double[] arrayWifiLinkRatios = { 120 / (6.5 / 8 * 1000 * 1000) };
+  private static double wb = 540 / 65;
+  private static final double[] arrayWifiLinkRatios = { 1 * wb, 2 * wb, 4 * wb, 8 * wb, 16 * wb, 24 * wb, 32 * wb,
+      48 * wb, 64 * wb };
 
   public double[] wifiLinkRatios() {
     return arrayWifiLinkRatios;
   }
 
-  /* ONLY ONE LINK SPEED */
-  private static final double[] arrayWifiLinkSpeeds = { 65 };
+  // linkspeed is obtained from WifiInfo in Mbps
+  private static final double[] arrayWifiLinkSpeeds = { 1, 2, 4, 8, 16, 24, 32, 48, 64 };
 
   public double[] wifiLinkSpeeds() {
     return arrayWifiLinkSpeeds;
