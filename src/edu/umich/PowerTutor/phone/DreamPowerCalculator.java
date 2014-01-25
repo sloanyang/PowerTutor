@@ -19,17 +19,19 @@ Please send inquiries to powertutor@umich.edu
 
 package edu.umich.PowerTutor.phone;
 
-import edu.umich.PowerTutor.components.*;
+import android.content.Context;
+import edu.umich.PowerTutor.components.Audio.AudioData;
+import edu.umich.PowerTutor.components.CPU.CpuData;
+import edu.umich.PowerTutor.components.GPS;
+import edu.umich.PowerTutor.components.GPS.GpsData;
 import edu.umich.PowerTutor.components.LCD.LcdData;
 import edu.umich.PowerTutor.components.OLED.OledData;
-import edu.umich.PowerTutor.components.CPU.CpuData;
-import edu.umich.PowerTutor.components.Audio.AudioData;
-import edu.umich.PowerTutor.components.GPS.GpsData;
-import edu.umich.PowerTutor.components.Wifi.WifiData;
-import edu.umich.PowerTutor.components.Threeg.ThreegData;
+import edu.umich.PowerTutor.components.Sensors;
 import edu.umich.PowerTutor.components.Sensors.SensorData;
-
-import android.content.Context;
+import edu.umich.PowerTutor.components.Threeg;
+import edu.umich.PowerTutor.components.Threeg.ThreegData;
+import edu.umich.PowerTutor.components.Wifi;
+import edu.umich.PowerTutor.components.Wifi.WifiData;
 
 public class DreamPowerCalculator implements PhonePowerCalculator {
   protected PhoneConstants coeffs;

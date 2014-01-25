@@ -116,7 +116,7 @@ public class PhoneSelector {
     case PHONE_PASSION:
       return new PassionPowerCalculator(context);
     case PHONE_CRESPO:
-      return new DreamPowerCalculator(context);
+      return new CrespoPowerCalculator(context);
     default:
       boolean oled = hasOled();
       Log.w(TAG, "Phone type not recognized (" + Build.DEVICE + "), using " + (oled ? "Passion" : "Dream")

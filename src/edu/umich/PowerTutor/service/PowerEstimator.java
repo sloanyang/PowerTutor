@@ -433,7 +433,7 @@ public class PowerEstimator implements Runnable {
         try {
           logStream.write(m);
         } catch (IOException e) {
-          Log.w(TAG, "Failed to write message to power log");
+          Log.w(TAG, "Failed to write message to power log: " + m);
         }
     }
   }
