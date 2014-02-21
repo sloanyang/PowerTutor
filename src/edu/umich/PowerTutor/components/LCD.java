@@ -80,7 +80,8 @@ public class LCD extends PowerComponent {
 
   private final String TAG = "LCD";
   private static final String[] BACKLIGHT_BRIGHTNESS_FILES = { "/sys/devices/virtual/leds/lcd-backlight/brightness",
-      "/sys/devices/platform/trout-backlight.0/leds/lcd-backlight/brightness", };
+      "/sys/devices/platform/trout-backlight.0/leds/lcd-backlight/brightness",
+      "/sys/devices/platform/s3cfb/spi_gpio.3/spi_master/spi3/spi3.0/backlight/s5p_bl/brightness" };
 
   private Context context;
   private ForegroundDetector foregroundDetector;
